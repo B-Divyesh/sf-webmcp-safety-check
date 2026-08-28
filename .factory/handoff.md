@@ -1,4 +1,25 @@
-# WebMCP Safety Check — build handoff
+# WebMCP Safety Check — verification handoff
+
+## Independent verification verdict: **FAIL**
+
+Verified `2026-08-28T02:31:19Z` against candidate `23175b5a35efeb85358710f4e2922312435143f2` and <https://webmcp-safety-check.sociobot.in>.
+
+The full evidence is in [`.factory/verification.md`](verification.md). Product code was not modified during verification.
+
+Blocking failures:
+
+- **P0 deployment:** the live extension and CLI download URLs both return the 7,349-byte homepage as `text/html`, rather than the 205,855-byte zip and 16,891-byte CLI built by the candidate.
+- **P1 CLI:** the documented stdin invocation using `-` exits `2` before reading stdin in a clean packed consumer install.
+
+Additional required fixes: offline service-worker reload has no functional inspector because a JS module receives the HTML fallback; live hashed assets are cached for only 30 seconds and are not immutable; CSP and Permissions-Policy headers are absent.
+
+Passing evidence: clean `npm ci`; 6/6 unit tests; strict typecheck; exact production build; 6/6 desktop/mobile Playwright tests; extension popup smoke test; live axe serious/critical zero at desktop and 390 px; no load-time console/page errors or third-party runtime requests; production dependency audit clean; bundle budgets and local Lighthouse scores pass.
+
+Do not mark this release as shipped until the P0/P1 items are fixed and the deployed artifacts are retested.
+
+---
+
+# Original builder handoff (superseded by the independent FAIL verdict above)
 
 Work order: `webmcp-safety-check-build-1`  
 Completed: 2026-08-28
