@@ -1,0 +1,11 @@
+{
+  "slug": "webmcp-safety-check",
+  "title": "WebMCP Safety Check",
+  "territory": "devtools-data",
+  "user": "Web teams exposing WebMCP/browser automation tools who need to inspect which operations can mutate state, use a real profile, or access an origin before an agent is allowed to call them.",
+  "smallest_useful_product": "A browser extension plus CLI that reads a WebMCP/MCP manifest or session transcript, classifies tools by read/mutate/external-navigation/credential scope, and fails CI on missing approval or evidence declarations.",
+  "artifact_class": "browser-extension",
+  "monetization": "free",
+  "constraints": "Treat server declarations as claims, not proof; avoid collecting browser content; track evolving specifications without inventing compatibility guarantees.",
+  "state": "RESEARCHED"
+}
