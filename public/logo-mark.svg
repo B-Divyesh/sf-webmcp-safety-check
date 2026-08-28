@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">WebMCP Safety Check leaf mark</title>
+  <rect width="64" height="64" rx="8" fill="#f4f0e3"/>
+  <path d="M13 51C28 40 39 27 50 11M19 45C10 37 13 25 24 23c7 10 5 18-5 22Zm14-13c-6-10-1-20 11-21 5 11 1 18-11 21Z" fill="none" stroke="#285d3a" stroke-width="4" stroke-linecap="square" stroke-linejoin="round"/>
+  <path d="M43 45h9v9h-9z" fill="#9c322d"/>
+</svg>

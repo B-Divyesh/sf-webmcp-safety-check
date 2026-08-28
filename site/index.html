@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Inspect WebMCP and MCP browser-tool safety declarations locally, export a review card, and fail CI on missing mutation, approval, or evidence claims.">
+    <meta name="theme-color" content="#f4f0e3">
+    <meta property="og:title" content="WebMCP Safety Check">
+    <meta property="og:description" content="A local field guide for browser-agent safety declarations.">
+    <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+    <title>WebMCP Safety Check — inspect browser-agent declarations</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="/">
+        <img src="/logo-mark.svg" width="40" height="40" alt="">
+        <span><small>Field note 01</small>WebMCP Safety Check</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#inspector">Inspector</a><a href="#cli">CLI</a><a class="nav-download" href="/downloads/webmcp-safety-check-chrome.zip" download>Download extension</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__copy">
+          <p class="eyebrow">A field guide for browser-agent surfaces</p>
+          <h1 id="hero-title">Know what a tool <em>claims</em> before an agent acts.</h1>
+          <p class="hero__dek">Inspect a WebMCP/MCP manifest or session transcript. Classify mutation, navigation, profile, origin, credentials, approval, and evidence declarations—without running the tool or uploading browser content.</p>
+          <div class="hero__actions"><a class="primary-button" href="#inspector">Inspect a manifest</a><a class="secondary-button" href="/downloads/webmcp-safety-check-chrome.zip" download>Download extension <span aria-hidden="true">↓</span></a></div>
+          <p class="micro-proof"><span>✓ Local only</span><span>✓ No host permissions</span><span>✓ Open policy</span></p>
+        </div>
+        <figure class="hero__figure">
+          <picture>
+            <source media="(max-width: 760px)" srcset="/assets/field-guide-hero-768.webp" type="image/webp">
+            <img src="/assets/field-guide-hero-1536.webp" srcset="/assets/field-guide-hero-768.webp 768w, /assets/field-guide-hero-1536.webp 1536w" sizes="(max-width: 820px) 100vw, 54vw" width="1536" height="1024" alt="An illustrated fern with browser-tab-shaped leaves examined through a brass hand lens" fetchpriority="high" decoding="async">
+          </picture>
+          <figcaption>Plate 01 · declarations under inspection</figcaption>
+        </figure>
+      </section>
+
+      <section class="method" aria-labelledby="method-title">
+        <div class="section-intro"><p class="eyebrow">Identification method</p><h2 id="method-title">From unknown surface to reviewable inventory.</h2></div>
+        <ol>
+          <li><span>01</span><div><h3>Collect</h3><p>Open a manifest or a JSON/JSONL tools/list transcript. The file stays on your device.</p></div></li>
+          <li><span>02</span><div><h3>Identify</h3><p>See explicit claims, omissions, risky combinations, and description-only signals per tool.</p></div></li>
+          <li><span>03</span><div><h3>Preserve</h3><p>Export structured JSON or a printable review card; run the same rules in CI.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="inspector-section" id="inspector" aria-labelledby="inspector-title">
+        <div class="section-intro section-intro--split"><div><p class="eyebrow">Live specimen desk</p><h2 id="inspector-title">Inspect locally, right now.</h2></div><p>The checker recognizes plain manifests, MCP tools/list responses, transcript arrays, and newline-delimited JSON. Maximum 2 MB.</p></div>
+        <div class="inspector-sheet"><div id="workbench"></div></div>
+      </section>
+
+      <section class="boundary" aria-labelledby="boundary-title">
+        <div class="boundary__stamp" aria-hidden="true">Claim<br>≠<br>proof</div>
+        <div><p class="eyebrow">Honest boundary</p><h2 id="boundary-title">An inventory, not a trust verdict.</h2><p>Servers self-declare these properties. WebMCP Safety Check spots missing and contradictory declarations; it does not execute tasks, observe runtime behavior, scrape pages, or certify a vendor.</p></div>
+      </section>
+
+      <section class="cli-section" id="cli" aria-labelledby="cli-title">
+        <div class="cli-copy"><p class="eyebrow">The same lens in CI</p><h2 id="cli-title">Fail on missing safety claims.</h2><p>The standalone Node 20+ CLI exits 1 when required mutation/effect, approval, or before/after evidence declarations are missing. Add stricter claims with a checked-in policy file.</p><a class="secondary-button" href="/downloads/webmcp-safety-check.mjs" download>Download CLI</a></div>
+        <div class="terminal" aria-label="CLI example"><div class="terminal__bar"><span></span><span></span><span></span><strong>review.yml</strong></div><pre tabindex="0" aria-label="Scrollable CLI command example"><code><span class="terminal__comment"># No install required</span>
+node webmcp-safety-check.mjs manifest.json \
+  --format json --out safety-report.json
+
+<span class="terminal__comment"># Optional .webmcp-safety.json</span>
+{
+  "requiredClaims": [
+    "effect", "approval", "evidence",
+    "profile", "origins", "credentials"
+  ],
+  "failOn": "warning"
+}</code></pre><button class="terminal__copy" type="button" data-copy-cli>Copy command</button></div>
+      </section>
+
+      <section class="format" aria-labelledby="format-title"><div><p class="eyebrow">Open claim shape</p><h2 id="format-title">Small enough to add by hand.</h2><p>Use <code>x-webmcp-safety</code>, <code>metadata.safety</code>, or standard <code>annotations.readOnlyHint</code>. Unknown future keys are preserved by your manifest and ignored by the checker.</p><a href="/examples/safe-manifest.json">View a complete example →</a></div><pre tabindex="0" aria-label="Scrollable safety declaration example"><code>"x-webmcp-safety": {
+  "effect": "mutate",
+  "approval": "required",
+  "evidence": {
+    "before": true,
+    "after": true
+  },
+  "profile": "real",
+  "origins": ["https://shop.example"],
+  "credentials": "origin-scoped"
+}</code></pre></section>
+    </main>
+    <footer class="site-footer">
+      <div><a class="brand brand--footer" href="/"><img src="/logo-mark.svg" width="36" height="36" alt=""><span>WebMCP Safety Check</span></a><p>Free, local-first, and open source. Generated field-guide imagery is original to this project.</p></div>
+      <nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-webmcp-safety-check">Source</a></nav>
+    </footer>
+    <noscript><p class="noscript">JavaScript is required for local analysis. The CLI remains available as a download.</p></noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
