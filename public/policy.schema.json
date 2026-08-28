@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://webmcp-safety-check.sociobot.in/policy.schema.json",
+  "title": "WebMCP Safety Check policy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "requiredClaims": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "enum": ["effect", "approval", "evidence", "profile", "origins", "credentials"] }
+    },
+    "failOn": { "enum": ["blocker", "warning"] }
+  }
+}

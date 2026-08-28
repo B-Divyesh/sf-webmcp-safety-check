@@ -1,0 +1,43 @@
+{
+  "name": "webmcp-safety-check",
+  "version": "1.0.0",
+  "description": "Local-first safety declaration checker for WebMCP and MCP browser tools",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "webmcp-safety-check": "dist/cli/webmcp-safety-check.mjs"
+  },
+  "scripts": {
+    "dev": "wxt",
+    "dev:site": "vite --config vite.site.config.ts",
+    "preview": "vite preview --config vite.site.config.ts --host 127.0.0.1 --port 4173",
+    "clean": "node scripts/clean.mjs",
+    "build:extension": "wxt build",
+    "build:cli": "node scripts/build-cli.mjs",
+    "build:site": "vite build --config vite.site.config.ts",
+    "package:extension": "wxt zip && node scripts/package-artifacts.mjs",
+    "build": "npm run clean && npm run build:extension && npm run build:cli && npm run build:site && npm run package:extension",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.58.2",
+    "@types/node": "22.15.3",
+    "esbuild": "0.25.3",
+    "jsdom": "26.1.0",
+    "typescript": "5.8.3",
+    "vite": "6.3.4",
+    "vitest": "3.1.2",
+    "wxt": "0.20.6"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "@axe-core/playwright": {
+      "playwright-core": "1.58.2"
+    }
+  }
+}

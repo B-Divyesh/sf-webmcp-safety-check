@@ -1,0 +1,24 @@
+{
+  "name": "example-checkout-tools",
+  "tools": [
+    {
+      "name": "place_order",
+      "description": "Submit the current basket and place an order.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "basketId": { "type": "string" } },
+        "required": ["basketId"]
+      }
+    },
+    {
+      "name": "open_receipt",
+      "description": "Navigate to the payment provider receipt.",
+      "x-webmcp-safety": {
+        "effect": "external-navigation",
+        "approval": "required",
+        "evidence": { "before": true, "after": true },
+        "profile": "real"
+      }
+    }
+  ]
+}

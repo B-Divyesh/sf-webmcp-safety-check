@@ -1,0 +1,39 @@
+{
+  "name": "example-catalog-tools",
+  "tools": [
+    {
+      "name": "search_catalog",
+      "description": "Search the public product catalog.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "query": { "type": "string" } },
+        "required": ["query"]
+      },
+      "annotations": { "readOnlyHint": true },
+      "x-webmcp-safety": {
+        "approval": "none",
+        "evidence": { "before": false, "after": true },
+        "profile": "fresh",
+        "origins": ["https://catalog.example"],
+        "credentials": "none"
+      }
+    },
+    {
+      "name": "save_favorite",
+      "description": "Save one product to the signed-in user's favorites.",
+      "inputSchema": {
+        "type": "object",
+        "properties": { "productId": { "type": "string" } },
+        "required": ["productId"]
+      },
+      "x-webmcp-safety": {
+        "effect": "mutate",
+        "approval": "required",
+        "evidence": { "before": true, "after": true },
+        "profile": "real",
+        "origins": ["https://shop.example"],
+        "credentials": "origin-scoped"
+      }
+    }
+  ]
+}

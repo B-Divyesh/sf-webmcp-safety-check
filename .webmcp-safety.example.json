@@ -1,0 +1,5 @@
+{
+  "$schema": "https://webmcp-safety-check.sociobot.in/policy.schema.json",
+  "requiredClaims": ["effect", "approval", "evidence", "profile", "origins", "credentials"],
+  "failOn": "warning"
+}
