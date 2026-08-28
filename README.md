@@ -103,7 +103,7 @@ Explicit `false` evidence values are valid declarations; omission is the finding
 
 ## Privacy, security, and scope
 
-There are no analytics, network submissions, CDN scripts, or third-party fonts. The site service worker caches only public application assets. Inputs and reports are not persisted; exports are user-initiated downloads. See the deployed `/privacy/` and `/terms/` documents.
+There are no analytics, network submissions, CDN scripts, or third-party fonts. The site service worker precaches the versioned application shell and public examples for offline inspection; it never caches input or reports. Inputs and reports are not persisted; exports are user-initiated downloads. `site/staticwebapp.config.json` is deployed with the static site and protects real download files from the navigation fallback, sets immutable caching for fingerprinted assets, and supplies the restrictive CSP and Permissions-Policy. See the deployed `/privacy/` and `/terms/` documents.
 
 Generated illustration provenance and the complete visual system are recorded in [.factory/design.md](.factory/design.md). Product verification and known gaps are in [.factory/handoff.md](.factory/handoff.md).
 

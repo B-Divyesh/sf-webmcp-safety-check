@@ -22,7 +22,7 @@ function option(name: string): string | undefined {
 }
 
 async function run(): Promise<void> {
-  const positional = args.find((arg, index) => !arg.startsWith('-') && (index === 0 || !['--format', '--out', '--policy'].includes(args[index - 1] ?? '')));
+  const positional = inputArgument(args);
   if (!positional) throw new Error('Provide a manifest/transcript path, or - to read stdin. Run with --help for usage.');
   const format = option('--format') ?? 'markdown';
   if (!['json', 'markdown'].includes(format)) throw new Error('--format must be json or markdown.');
@@ -36,6 +36,25 @@ async function run(): Promise<void> {
   else process.stdout.write(output);
   const failed = report.summary.blockers > 0 || (policy.failOn === 'warning' && report.summary.warnings > 0);
   process.exitCode = failed ? 1 : 0;
+}
+
+/**
+ * Return the one input argument while leaving option values out of the search.
+ * `-` is deliberately an input value: it is the documented stdin sentinel,
+ * not a short option.
+ */
+function inputArgument(argv: string[]): string | undefined {
+  const optionsWithValues = new Set(['--format', '--out', '--policy']);
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]!;
+    if (optionsWithValues.has(argument)) {
+      index += 1;
+      continue;
+    }
+    if (argument === '-') return argument;
+    if (!argument.startsWith('-')) return argument;
+  }
+  return undefined;
 }
 
 async function loadPolicy(path?: string): Promise<Policy> {
