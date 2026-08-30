@@ -1,7 +1,31 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { readFile, readdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { execFile as execFileCallback } from 'node:child_process';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { promisify } from 'node:util';
+
+const execFile = promisify(execFileCallback);
+
+function parseRgb(color: string): [number, number, number] {
+  const values = color.match(/\d+(?:\.\d+)?/g)?.slice(0, 3).map(Number);
+  if (!values || values.length !== 3) throw new Error(`Expected an RGB color, received ${color}`);
+  return values as [number, number, number];
+}
+
+function relativeLuminance(color: string): number {
+  return parseRgb(color).map((channel) => {
+    const normalized = channel / 255;
+    return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+  }).reduce((total, channel, index) => total + channel * [0.2126, 0.7152, 0.0722][index]!, 0);
+}
+
+function contrastRatio(first: string, second: string): number {
+  const firstLuminance = relativeLuminance(first);
+  const secondLuminance = relativeLuminance(second);
+  return (Math.max(firstLuminance, secondLuminance) + 0.05) / (Math.min(firstLuminance, secondLuminance) + 0.05);
+}
 
 test('landing page analyzes an incomplete manifest and remains accessible', async ({ page }) => {
   const consoleErrors: string[] = [];
@@ -72,28 +96,32 @@ test('@claim:offline-reload offline reload keeps the locally cached inspector ru
   }
 });
 
-test('@claim:download-artifacts served download URLs return the CLI and extension packages', async ({ request }) => {
+test('@claim:download-artifacts public download URLs serve the exact packaged CLI and extension ZIP', async ({ request }) => {
   const root = resolve(process.cwd(), 'dist/site');
-  const [cliResponse, extensionResponse, config, serviceWorker] = await Promise.all([
+  const [cliResponse, extensionResponse, config, serviceWorker, packagedCli, packagedExtension] = await Promise.all([
     request.get('/downloads/webmcp-safety-check.mjs'),
     request.get('/downloads/webmcp-safety-check-chrome.zip'),
     readFile(resolve(root, 'staticwebapp.config.json'), 'utf8'),
-    readFile(resolve(root, 'sw.js'), 'utf8')
+    readFile(resolve(root, 'sw.js'), 'utf8'),
+    readFile(resolve('dist/cli/webmcp-safety-check.mjs')),
+    readFile(resolve(root, 'downloads/webmcp-safety-check-chrome.zip'))
   ]);
   const parsed = JSON.parse(config) as {
     responseOverrides: Record<string, { rewrite: string }>;
     globalHeaders: Record<string, string>;
     routes: Array<{ route: string; headers: Record<string, string> }>;
   };
-  const cli = await cliResponse.text();
+  const cli = await cliResponse.body();
   const extension = await extensionResponse.body();
   expect(cliResponse.status()).toBe(200);
   expect(cliResponse.headers()['content-type']).toContain('text/javascript');
-  expect(cliResponse.headers()['content-disposition']).toContain('attachment');
+  expect(cliResponse.headers()['content-disposition']).toContain('attachment; filename="webmcp-safety-check.mjs"');
   expect(extensionResponse.status()).toBe(200);
   expect(extensionResponse.headers()['content-type']).toContain('application/zip');
-  expect(extensionResponse.headers()['content-disposition']).toContain('attachment');
-  expect(cli).toContain('WebMCP Safety Check');
+  expect(extensionResponse.headers()['content-disposition']).toContain('attachment; filename="webmcp-safety-check-chrome.zip"');
+  expect(cli).toEqual(packagedCli);
+  expect(extension).toEqual(packagedExtension);
+  expect(cli.toString('utf8')).toContain('WebMCP Safety Check');
   expect(extension.subarray(0, 2).toString()).toBe('PK');
   expect(extension.byteLength).toBeGreaterThan(1_000);
   expect(parsed.responseOverrides['404']?.rewrite).toBe('/404.html');
@@ -101,6 +129,21 @@ test('@claim:download-artifacts served download URLs return the CLI and extensio
   expect(parsed.globalHeaders['Permissions-Policy']).toContain('camera=()');
   expect(parsed.routes.find((route) => route.route === '/assets/*')?.headers['Cache-Control']).toContain('immutable');
   expect(serviceWorker).not.toContain('"/staticwebapp.config.json"');
+});
+
+test('@claim:no-install-cli downloaded CLI runs directly with Node without an install step', async ({ request }) => {
+  const response = await request.get('/downloads/webmcp-safety-check.mjs');
+  expect(response.status()).toBe(200);
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), 'webmcp-safety-download-'));
+  try {
+    const cliPath = join(temporaryDirectory, 'webmcp-safety-check.mjs');
+    await writeFile(cliPath, await response.body());
+    const { stdout, stderr } = await execFile(process.execPath, [cliPath, resolve('public/examples/safe-manifest.json'), '--format', 'json']);
+    expect(stderr).toBe('');
+    expect(JSON.parse(stdout)).toMatchObject({ summary: { status: 'clear', blockers: 0 } });
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
 });
 
 test('@claim:demo-sandbox demo loads a resettable sample without persisted data', async ({ page }) => {
@@ -156,6 +199,29 @@ test('@claim:open-source ships the MIT license and public source link', async ({
   expect(await readFile(resolve(process.cwd(), 'LICENSE'), 'utf8')).toContain('MIT License');
   await page.goto('/');
   await expect(page.getByRole('link', { name: /Source code on GitHub/ })).toHaveAttribute('href', 'https://github.com/B-Divyesh/sf-webmcp-safety-check');
+});
+
+test('@claim:free-product the inspector and direct product downloads require neither an account nor payment', async ({ page, request }) => {
+  const origins = new Set<string>();
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.protocol.startsWith('http')) origins.add(url.origin);
+  });
+  await page.goto('/?demo=1#inspector');
+  await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
+  await expect(page.locator('form')).toHaveCount(0);
+  const [cli, extension] = await Promise.all([
+    request.get('/downloads/webmcp-safety-check.mjs'),
+    request.get('/downloads/webmcp-safety-check-chrome.zip')
+  ]);
+  expect(cli.status()).toBe(200);
+  expect(extension.status()).toBe(200);
+  expect([...origins]).toEqual(['http://127.0.0.1:4173']);
+  const publicCopy = await Promise.all([
+    readFile(resolve('site/index.html'), 'utf8'),
+    readFile(resolve('site/terms/index.html'), 'utf8')
+  ]);
+  expect(publicCopy.join('\n')).not.toMatch(/checkout|billing|payment provider|subscribe|sign[ -]?in|log[ -]?in/i);
 });
 
 test('@claim:input-size-limit accepts 2 MB and rejects larger browser files', async ({ page }) => {
@@ -224,6 +290,65 @@ test('metadata, discovery, footer identity, and real 404 are complete', async ({
   expect(await missing.text()).toContain('This page is not in the field guide.');
 });
 
+test('light-theme focus rings meet 3:1 contrast on every light surface and inside the terminal', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/');
+  const privacyLink = page.getByRole('link', { name: 'Privacy' }).first();
+  await privacyLink.focus();
+  const lightFocus = await privacyLink.evaluate((element) => {
+    const resolveToken = (token: string): string => {
+      const sample = document.createElement('span');
+      sample.style.color = `var(${token})`;
+      document.body.append(sample);
+      const value = getComputedStyle(sample).color;
+      sample.remove();
+      return value;
+    };
+    return {
+      outline: getComputedStyle(element).outlineColor,
+      focus: resolveToken('--focus'),
+      paper: resolveToken('--paper'),
+      paperDeep: resolveToken('--paper-deep'),
+      sheet: resolveToken('--sheet')
+    };
+  });
+  expect(lightFocus.outline).toBe(lightFocus.focus);
+  for (const surface of [lightFocus.paper, lightFocus.paperDeep, lightFocus.sheet]) {
+    expect(contrastRatio(lightFocus.outline, surface)).toBeGreaterThanOrEqual(3);
+  }
+
+  const terminalCopy = page.getByRole('button', { name: 'Copy command' });
+  await terminalCopy.focus();
+  const terminalFocus = await terminalCopy.evaluate((element) => ({
+    outline: getComputedStyle(element).outlineColor,
+    background: getComputedStyle(element.closest('.terminal')!).backgroundColor
+  }));
+  expect(contrastRatio(terminalFocus.outline, terminalFocus.background)).toBeGreaterThanOrEqual(3);
+});
+
+test('meaningful landing, inspector, legal, and mobile copy keeps the 16 px baseline', async ({ page }) => {
+  const selectors = [
+    '.hero__action-note', '.micro-proof', '.site-footer p', '.site-footer nav span',
+    '.source-meta', '.report__eyebrow', '.coverage span', '.summary-list span', '.claim-tag', '.finding p'
+  ];
+  await page.goto('/?demo=1#inspector');
+  for (const selector of selectors) {
+    const sizes = await page.locator(selector).evaluateAll((elements) => elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize)));
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(sizes.every((size) => size >= 16)).toBe(true);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  for (const selector of ['.hero__action-note', '.micro-proof', '.terminal pre', '.format pre', '.site-footer p', '.site-footer nav span']) {
+    const sizes = await page.locator(selector).evaluateAll((elements) => elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize)));
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(sizes.every((size) => size >= 16)).toBe(true);
+  }
+  await page.goto('/privacy/');
+  expect(Number.parseFloat(await page.locator('.eyebrow').evaluate((element) => getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
+  expect(Number.parseFloat(await page.locator('.legal-footer').evaluate((element) => getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
+});
+
 test('all demo axe rules pass and mobile targets meet 44 CSS pixels', async ({ page }) => {
   await page.goto('/?demo=1#inspector');
   const accessibility = await new AxeBuilder({ page }).analyze();
@@ -254,7 +379,7 @@ test('keyboard entry, dark mode, and reduced motion remain accessible', async ({
   expect(accessibility.violations).toEqual([]);
 });
 
-test('response policies and route metadata match the static deployment contract', async ({ page, request }) => {
+test('@claim:static-deployment-contract static routes send security headers, cache immutable assets, and return a designed 404', async ({ page, request }) => {
   const home = await request.get('/');
   expect(home.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
   expect(home.headers()['permissions-policy']).toContain('camera=()');
@@ -263,6 +388,9 @@ test('response policies and route metadata match the static deployment contract'
   expect(scriptPath).toBeTruthy();
   expect((await request.get(scriptPath!)).headers()['cache-control']).toContain('immutable');
   expect((await request.get('/sw.js')).headers()['cache-control']).toBe('no-cache');
+  const missing = await request.get('/not-a-real-route');
+  expect(missing.status()).toBe(404);
+  expect(await missing.text()).toContain('This page is not in the field guide.');
 
   for (const route of ['/privacy/', '/terms/']) {
     await page.goto(route);

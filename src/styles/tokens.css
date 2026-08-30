@@ -11,7 +11,9 @@
   --warning: #8a5a00;
   --danger: #9c322d;
   --rule: #c9c3ae;
-  --focus: #d89928;
+  /* Deep ochre clears 3:1 against every light paper surface. */
+  --focus: #704300;
+  --focus-on-dark: #f3c66e;
   --shadow: 0 14px 36px rgb(44 53 39 / 12%);
   --serif: Georgia, Cambria, "Times New Roman", serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

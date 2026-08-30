@@ -16,20 +16,21 @@ Light is the default treatment; dark is a deliberately inkier “night fieldwork
 | sheet / surface | `#FFFDF5` | `#202A22` | Working specimens and controls |
 | ink / text | `#17261B` | `#F2F0DF` | Primary copy |
 | graphite / muted | `#536052` | `#B9C3B3` | Notes and metadata |
-| fern / accent | `#285D3A` | `#9ACB8B` | Primary action and focus |
+| fern / accent | `#285D3A` | `#9ACB8B` | Primary action |
 | fern-ink / accent contrast | `#FFFFFF` | `#102016` | Text on accent |
 | moss / success | `#2D6944` | `#A3D6A1` | Clear findings |
 | ochre / warning | `#8A5A00` | `#F3C66E` | Review findings |
 | madder / danger | `#9C322D` | `#FFAAA2` | Blocking findings |
 | rule | `#C9C3AE` | `#445047` | Dividers and control outlines |
+| focus | `#704300` | `#F3C66E` | 3 px focus ring; bright ochre is also used inside dark terminal panels |
 
-Status never relies on color: every state also uses a word, icon/mark, and explanatory sentence. Focus uses a 3 px fern/ochre double ring. Checked contrast targets are ≥ 4.5:1 for body text in both treatments.
+Status never relies on color: every state also uses a word, icon/mark, and explanatory sentence. Focus uses a 3 px deep-ochre ring on light paper and bright ochre inside dark terminal panels. The light ring has at least 3:1 contrast against paper, deep paper, and sheet surfaces. Checked contrast targets are ≥ 4.5:1 for body text in both treatments.
 
 ## Type
 
 - Display and specimen names: Georgia, Cambria, `Times New Roman`, serif. The established system serif gives field-guide authority without downloading a font.
 - Interface, tables, and annotations: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace. This ties the evidence labels to manifests and CI output.
-- Scale: 14, 16, 18, 22, 32, and clamp(40–68) px. Body copy is never smaller than 16 px. Measures stay under 72 characters. Risk counts and line references use tabular figures.
+- Scale: 16, 18, 22, 32, and clamp(40–78) px. Meaningful copy is never smaller than 16 px. Measures stay under 72 characters. Risk counts and line references use tabular figures.
 
 System fonts are intentional: zero font payload, no CDN, and the contrast between editorial serif and machine-readable mono matches the product.
 

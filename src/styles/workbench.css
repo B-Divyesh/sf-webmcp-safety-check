@@ -79,7 +79,7 @@
   tab-size: 2;
 }
 .input-actions, .report-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
-.source-meta { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+.source-meta { margin: 12px 0 0; color: var(--muted); font-size: 16px; }
 
 .empty-ledger { padding: 32px 0 16px; border-bottom: 1px solid var(--rule); }
 .empty-ledger__mark { display: block; width: 48px; height: 48px; margin-bottom: 12px; color: var(--accent); }
@@ -89,18 +89,18 @@
 .report { margin-top: 32px; animation: settle 180ms ease-out both; }
 @keyframes settle { from { opacity: 0; transform: translateY(8px); } }
 .report__mast { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: end; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
-.report__eyebrow, .specimen__number { margin: 0 0 4px; color: var(--muted); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+.report__eyebrow, .specimen__number { margin: 0 0 4px; color: var(--muted); font-size: 16px; letter-spacing: 0.06em; text-transform: uppercase; }
 .report__title { margin: 0; font: 600 clamp(28px, 5vw, 40px)/1.05 var(--serif); }
 .report__title[data-status="block"] { color: var(--danger); }
 .report__title[data-status="review"] { color: var(--warning); }
 .report__title[data-status="clear"] { color: var(--success); }
 .coverage { min-width: 114px; text-align: right; }
 .coverage strong { display: block; font: 600 36px/1 var(--serif); font-variant-numeric: tabular-nums; }
-.coverage span { color: var(--muted); font-size: 12px; }
+.coverage span { color: var(--muted); font-size: 16px; }
 .summary-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin: 0 0 24px; padding: 0; background: var(--rule); list-style: none; }
 .summary-list li { padding: 14px; background: var(--sheet); }
 .summary-list strong { display: block; font: 600 24px/1.1 var(--serif); font-variant-numeric: tabular-nums; }
-.summary-list span { color: var(--muted); font-size: 12px; }
+.summary-list span { color: var(--muted); font-size: 16px; }
 .claim-disclaimer { max-width: 68ch; margin: 16px 0 24px; color: var(--muted); }
 
 .specimen-list { margin: 0; padding: 0; list-style: none; }
@@ -119,7 +119,7 @@
 .specimen h3 { margin: 0 0 6px; overflow-wrap: anywhere; font: 600 22px/1.2 var(--serif); }
 .specimen__description { margin: 0; color: var(--muted); }
 .claim-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 0; padding: 0; list-style: none; }
-.claim-tag { padding: 3px 7px; border: 1px solid var(--rule); font-size: 12px; }
+.claim-tag { padding: 3px 7px; border: 1px solid var(--rule); font-size: 16px; }
 .claim-tag[data-missing="true"] { border-style: dashed; color: var(--muted); }
 .finding-list { margin: 0; padding: 0; list-style: none; }
 .finding { padding: 0 0 12px 24px; }
@@ -129,7 +129,7 @@
 .finding[data-severity="warning"] .finding__mark { color: var(--warning); }
 .finding[data-severity="note"] .finding__mark { color: var(--success); }
 .finding strong { display: block; }
-.finding p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.finding p { margin: 2px 0 0; color: var(--muted); font-size: 16px; }
 
 .undo-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border: 1px solid var(--rule); background: var(--sheet); }
 

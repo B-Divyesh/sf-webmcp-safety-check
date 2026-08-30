@@ -8,6 +8,9 @@ Audited 2026-08-30. The landing page uses **tool**, **declaration**, **claim**, 
 | For web teams deciding whether browser tools are ready for agent use. | 12 |
 | Classify declared safety properties without running tools or uploading browser content. | 11 |
 | Loads a sample with missing safety declarations. | 8 |
+| Local only. | 2 |
+| No host permissions. | 3 |
+| Open source. | 2 |
 | Open a manifest or a JSON/JSONL tools/list transcript. | 9 |
 | The file stays on your device. | 6 |
 | See explicit claims, invalid values, omissions, risky combinations, and description-only signals per tool. | 12 |

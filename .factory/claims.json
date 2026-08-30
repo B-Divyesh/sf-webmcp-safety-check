@@ -8,10 +8,17 @@
   },
   {
     "id": "download-artifacts",
-    "claim": "The public site downloads a standalone CLI and Chrome extension package",
+    "claim": "The public site downloads the exact packaged standalone CLI and Chrome extension ZIP",
     "where": "Header, hero, CLI section, README",
     "test": "npm run test:e2e -- --grep @claim:download-artifacts",
-    "sandbox": "The self-building test server serves both public URLs; assert status, content type, attachment headers, and file signatures."
+    "sandbox": "The self-building test server serves both advertised URLs; assert 200 status, MIME type, attachment filenames, package signatures, and byte-for-byte equality with the built CLI and WXT ZIP."
+  },
+  {
+    "id": "no-install-cli",
+    "claim": "The downloaded CLI runs directly with Node and needs no installation",
+    "where": "Landing CLI terminal, README",
+    "test": "npm run test:e2e -- --grep @claim:no-install-cli",
+    "sandbox": "Download the advertised CLI into a fresh temporary directory, invoke it with Node against the shipped safe manifest, and parse its clear JSON output."
   },
   {
     "id": "demo-sandbox",
@@ -124,6 +131,20 @@
     "where": "Landing footer, README",
     "test": "npm run test:e2e -- --grep @claim:open-source",
     "sandbox": "Assert the shipped MIT license text and the public source link."
+  },
+  {
+    "id": "free-product",
+    "claim": "The web inspector and public CLI and extension downloads require no account or payment",
+    "where": "Landing footer, terms page",
+    "test": "npm run test:e2e -- --grep @claim:free-product",
+    "sandbox": "Run the sample inspector and fetch both public product downloads in a fresh context; assert no form, account/payment copy or external request is involved."
+  },
+  {
+    "id": "static-deployment-contract",
+    "claim": "The static site serves a designed 404, immutable fingerprinted assets, CSP, and Permissions-Policy",
+    "where": "README deployment and privacy section",
+    "test": "npm run test:e2e -- --grep @claim:static-deployment-contract",
+    "sandbox": "Request the production-shaped local static server; assert the security headers, immutable hashed JavaScript asset, no-cache service worker, and styled 404 response."
   },
   {
     "id": "asset-provenance",
