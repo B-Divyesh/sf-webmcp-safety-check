@@ -20,6 +20,9 @@ const files = await filesIn(site);
 const urls = files
   .filter((file) => file !== join(site, 'sw.js'))
   .map((file) => relative(site, file).split(sep).join('/'))
+  // Azure Static Web Apps consumes this deployment configuration rather than
+  // serving it. Including it makes cache.addAll reject the offline install.
+  .filter((path) => path !== 'staticwebapp.config.json')
   .filter((path) => path === 'index.html' || path === 'privacy/index.html' || path === 'terms/index.html' || cacheableExtensions.has(extname(path)))
   .map((path) => path === 'index.html' ? '/' : path === 'privacy/index.html' ? '/privacy/' : path === 'terms/index.html' ? '/terms/' : `/${path}`)
   .sort();

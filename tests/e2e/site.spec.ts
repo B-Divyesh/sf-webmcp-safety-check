@@ -71,10 +71,11 @@ test('@claim:offline-reload offline reload keeps the locally cached inspector ru
 
 test('@claim:download-artifacts release configuration preserves real downloadable artifacts and static hardening', async () => {
   const root = resolve(process.cwd(), 'dist/site');
-  const [cli, extension, config] = await Promise.all([
+  const [cli, extension, config, serviceWorker] = await Promise.all([
     readFile(resolve(root, 'downloads/webmcp-safety-check.mjs'), 'utf8'),
     readFile(resolve(root, 'downloads/webmcp-safety-check-chrome.zip')),
-    readFile(resolve(root, 'staticwebapp.config.json'), 'utf8')
+    readFile(resolve(root, 'staticwebapp.config.json'), 'utf8'),
+    readFile(resolve(root, 'sw.js'), 'utf8')
   ]);
   const parsed = JSON.parse(config) as {
     navigationFallback: { exclude: string[] };
@@ -88,6 +89,7 @@ test('@claim:download-artifacts release configuration preserves real downloadabl
   expect(parsed.globalHeaders['Content-Security-Policy']).toContain("default-src 'self'");
   expect(parsed.globalHeaders['Permissions-Policy']).toContain('camera=()');
   expect(parsed.routes.find((route) => route.route === '/assets/*')?.headers['Cache-Control']).toContain('immutable');
+  expect(serviceWorker).not.toContain('"/staticwebapp.config.json"');
 });
 
 test('@claim:demo-sandbox demo loads a resettable sample without persisted data', async ({ page }) => {
