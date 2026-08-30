@@ -37,7 +37,7 @@ export function mountWorkbench(root: HTMLElement, options: WorkbenchOptions = {}
     <section class="workbench" aria-labelledby="workbench-title">
       <h2 id="workbench-title" class="visually-hidden">Manifest inspection workbench</h2>
       <p class="workbench__heading">Choose a manifest or paste a JSON/JSONL session transcript. The check runs entirely in this browser.</p>
-      ${options.demo ? `<aside class="demo-note" data-demo-banner aria-label="Demo status"><span><strong>Demo — sample data, nothing is saved.</strong> This sample stays in page memory.</span><span class="demo-note__actions"><button class="quiet-button" type="button" data-reset-demo>Reset demo</button><a class="quiet-button" href="/">Start for real</a></span></aside>` : ''}
+      ${options.demo ? `<div class="demo-note" data-demo-banner role="status" aria-label="Demo status"><span><strong>Demo — sample data, nothing is saved.</strong> This sample stays in page memory.</span><span class="demo-note__actions"><button class="quiet-button" type="button" data-reset-demo>Reset demo</button><a class="quiet-button" href="/">Start for real</a></span></div>` : ''}
       <div class="offline-note" data-offline hidden><strong>Offline fieldwork.</strong> Analysis and export still work; downloads and documentation links may not.</div>
       <div class="error-note" data-error role="alert" tabindex="-1" hidden></div>
       <div class="source-tabs" role="tablist" aria-label="Input method">
@@ -230,8 +230,16 @@ function renderTool(tool: ToolAssessment): string {
 }
 
 function renderClaim(name: string, claim: Claim): string {
-  const value = !claim.declared ? 'missing' : Array.isArray(claim.value) ? claim.value.join(', ') : typeof claim.value === 'object' ? 'before + after' : String(claim.value);
+  const value = claim.invalid ? 'invalid' : !claim.declared ? 'missing' : Array.isArray(claim.value) ? claim.value.join(', ') : isEvidence(claim.value) ? `before: ${yesNo(claim.value.before)} · after: ${yesNo(claim.value.after)}` : String(claim.value);
   return `<li class="claim-tag" data-missing="${!claim.declared}">${escapeHtml(name)}: ${escapeHtml(value)}</li>`;
+}
+
+function isEvidence(value: unknown): value is { before: boolean; after: boolean } {
+  return typeof value === 'object' && value !== null && 'before' in value && 'after' in value;
+}
+
+function yesNo(value: boolean): string {
+  return value ? 'yes' : 'no';
 }
 
 function download(name: string, contents: string, type: string): void {

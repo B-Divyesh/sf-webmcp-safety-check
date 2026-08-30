@@ -8,7 +8,7 @@ export default defineConfig({
   manifest: {
     name: 'WebMCP Safety Check',
     description: 'Inspect WebMCP and MCP tool declarations locally before an agent can call them.',
-    version: '1.0.0',
+    version: '1.0.1',
     permissions: [],
     host_permissions: [],
     icons: {

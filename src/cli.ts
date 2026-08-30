@@ -8,11 +8,11 @@ import { DEFAULT_POLICY, type ClaimName, type Policy } from './core/types';
 
 const args = process.argv.slice(2);
 if (args.includes('--help') || args.includes('-h')) {
-  process.stdout.write(`WebMCP Safety Check 1.0.0\n\nUsage: webmcp-safety-check <file|-> [--format json|markdown] [--out path] [--policy path] [--strict]\n\nExit 0: policy passes · Exit 1: findings meet failure threshold · Exit 2: input/config error\n`);
+  process.stdout.write(`WebMCP Safety Check 1.0.1\n\nUsage: webmcp-safety-check <file|-> [--format json|markdown] [--out path] [--policy path] [--strict]\n\nExit 0: policy passes · Exit 1: findings meet failure threshold · Exit 2: input/config error\n`);
   process.exit(0);
 }
 if (args.includes('--version') || args.includes('-v')) {
-  process.stdout.write('1.0.0\n');
+  process.stdout.write('1.0.1\n');
   process.exit(0);
 }
 
@@ -22,6 +22,7 @@ function option(name: string): string | undefined {
 }
 
 async function run(): Promise<void> {
+  validateArguments(args);
   const positional = inputArgument(args);
   if (!positional) throw new Error('Provide a manifest/transcript path, or - to read stdin. Run with --help for usage.');
   const format = option('--format') ?? 'markdown';
@@ -36,6 +37,25 @@ async function run(): Promise<void> {
   else process.stdout.write(output);
   const failed = report.summary.blockers > 0 || (policy.failOn === 'warning' && report.summary.warnings > 0);
   process.exitCode = failed ? 1 : 0;
+}
+
+function validateArguments(argv: string[]): void {
+  const flags = new Set(['--strict']);
+  const optionsWithValues = new Set(['--format', '--out', '--policy']);
+  let positionalCount = 0;
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]!;
+    if (optionsWithValues.has(argument)) {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('--')) throw new Error(`${argument} requires a value.`);
+      index += 1;
+      continue;
+    }
+    if (flags.has(argument)) continue;
+    if (argument.startsWith('-') && argument !== '-') throw new Error(`Unknown option: ${argument}. Run with --help for usage.`);
+    positionalCount += 1;
+  }
+  if (positionalCount > 1) throw new Error('Provide exactly one manifest/transcript path, or - to read stdin.');
 }
 
 /**

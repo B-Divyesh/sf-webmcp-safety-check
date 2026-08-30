@@ -1,37 +1,135 @@
 [
   {
     "id": "offline-reload",
-    "claim": "Works offline after the first visit",
+    "claim": "The web inspector works offline after the first visit",
     "where": "Inspector offline notice, README",
     "test": "npm run test:e2e -- --grep @claim:offline-reload",
-    "sandbox": "Fresh browser context visits the site online, waits for the service worker, goes offline, reloads, and analyzes the shipped sample."
+    "sandbox": "A fresh browser context loads once, receives service-worker control, goes offline, reloads, and analyzes the shipped sample."
   },
   {
     "id": "download-artifacts",
-    "claim": "Downloads a standalone CLI and Chrome extension package",
-    "where": "Landing-page download links, README",
+    "claim": "The public site downloads a standalone CLI and Chrome extension package",
+    "where": "Header, hero, CLI section, README",
     "test": "npm run test:e2e -- --grep @claim:download-artifacts",
-    "sandbox": "Production build; assert both static artifacts exist, have their expected signatures, and are excluded from navigation fallback."
+    "sandbox": "The self-building test server serves both public URLs; assert status, content type, attachment headers, and file signatures."
   },
   {
     "id": "demo-sandbox",
-    "claim": "Try the checker with sample data that is not saved",
-    "where": "Landing-page primary action, demo banner",
+    "claim": "The one-click sample demo is resettable and saves no sample data",
+    "where": "Landing primary action, demo banner, demo documentation",
     "test": "npm run test:e2e -- --grep @claim:demo-sandbox",
-    "sandbox": "Fresh browser context opens /?demo=1, sees an analyzed sample, resets it, and confirms browser storage remains empty."
+    "sandbox": "A fresh demo context opens the analyzed sample, resets it, and confirms browser storage remains empty."
   },
   {
     "id": "json-export",
-    "claim": "Exports the review as JSON",
-    "where": "Inspector report action, landing-page method section",
+    "claim": "The inspector exports its review as structured JSON",
+    "where": "Inspector report action, landing method section",
     "test": "npm run test:e2e -- --grep @claim:json-export",
-    "sandbox": "Fresh demo context analyzes the shipped sample, downloads JSON, and parses the result."
+    "sandbox": "The demo downloads a JSON report and the test parses its blocking status."
+  },
+  {
+    "id": "review-card-export",
+    "claim": "The inspector exports a Markdown review card and opens a printable card",
+    "where": "Inspector report actions, landing method section, README",
+    "test": "npm run test:e2e -- --grep @claim:review-card-export",
+    "sandbox": "The demo downloads valid Markdown and the print action invokes the browser print path."
   },
   {
     "id": "local-only",
-    "claim": "Inspects inputs locally without third-party requests",
-    "where": "Landing-page facts, privacy page, README",
+    "claim": "Inspection stays local and does not execute tools or contact declared origins",
+    "where": "Landing facts and boundary, privacy page, README",
     "test": "npm run test:e2e -- --grep @claim:local-only",
-    "sandbox": "Record every HTTP request from a fresh demo inspection and assert the only origin is the product's own origin."
+    "sandbox": "A manifest containing an external URL and execution wording is analyzed while every network request is recorded."
+  },
+  {
+    "id": "no-tracking-assets",
+    "claim": "The site ships no analytics, tracking pixels, CDN scripts, or third-party fonts",
+    "where": "Privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:no-tracking-assets",
+    "sandbox": "Record all demo requests and inspect the built HTML, JavaScript, and CSS for tracking libraries and remote fonts."
+  },
+  {
+    "id": "no-persistence",
+    "claim": "Real input and generated reports are not written to browser storage or offline caches",
+    "where": "Privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:no-persistence",
+    "sandbox": "Analyze marker input outside demo, then search localStorage, sessionStorage, and every service-worker cache response for the marker."
+  },
+  {
+    "id": "extension-no-access",
+    "claim": "The extension requests no browser permissions or host access",
+    "where": "Landing facts, extension footer, privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:extension-no-access",
+    "sandbox": "Read the packaged MV3 manifest and assert both permissions and host_permissions are empty."
+  },
+  {
+    "id": "input-formats",
+    "claim": "The checker accepts manifests, JSON-RPC tools/list responses, transcript arrays, JSONL, and single tool objects",
+    "where": "Inspector instructions, README",
+    "test": "npm test -- --testNamePattern @claim:input-formats",
+    "sandbox": "Analyze one complete fixture in each documented envelope and assert its detected kind and tool count."
+  },
+  {
+    "id": "input-size-limit",
+    "claim": "The browser inspector accepts files up to 2 MB and rejects larger files",
+    "where": "Inspector file control, README",
+    "test": "npm run test:e2e -- --grep @claim:input-size-limit",
+    "sandbox": "Upload a valid manifest padded to exactly 2 MiB, then a 2 MiB plus one byte file."
+  },
+  {
+    "id": "cli-policy",
+    "claim": "The CLI applies checked-in policy, returns exit 0, 1, or 2, and writes JSON automation output",
+    "where": "Landing CLI section, README",
+    "test": "npm test -- --testNamePattern @claim:cli-policy",
+    "sandbox": "Install the packed package into a clean temporary consumer and assert pass, finding, input-error, and output-file behavior."
+  },
+  {
+    "id": "classification-policy",
+    "claim": "External navigation without origins and real-profile use without credential scope are blockers",
+    "where": "README default policy description",
+    "test": "npm test -- --testNamePattern @claim:classification-policy",
+    "sandbox": "Analyze two otherwise complete tools with each risky combination and assert blocker findings."
+  },
+  {
+    "id": "declaration-validation",
+    "claim": "Safety declaration values are type-checked and explicit false evidence values are preserved",
+    "where": "Declaration documentation, README",
+    "test": "npm test -- --testNamePattern @claim:declaration-validation",
+    "sandbox": "Analyze the shipped false-evidence fixture and an adversarial null/wrong-type fixture; assert exact values and blockers."
+  },
+  {
+    "id": "claim-inventory",
+    "claim": "The checker inventories effect, approval, evidence, profile, origins, and credential scope",
+    "where": "Landing method section, README",
+    "test": "npm test -- --testNamePattern @claim:claim-inventory",
+    "sandbox": "Analyze a complete declaration and assert every documented property and its exact value in the report."
+  },
+  {
+    "id": "declaration-sources",
+    "claim": "The checker reads x-webmcp-safety, metadata.safety, _meta.safety, annotations.safety, and MCP effect hints",
+    "where": "Declaration format section, README",
+    "test": "npm test -- --testNamePattern @claim:declaration-sources",
+    "sandbox": "Analyze a complete tool using each documented declaration location and effect hint."
+  },
+  {
+    "id": "unknown-fields",
+    "claim": "Unknown future safety keys are ignored without changing recognized claims",
+    "where": "Declaration format section, README",
+    "test": "npm test -- --testNamePattern @claim:unknown-fields",
+    "sandbox": "Add an unknown safety key to a complete tool and assert the recognized report remains clear and unchanged."
+  },
+  {
+    "id": "open-source",
+    "claim": "The product is MIT licensed with public source code",
+    "where": "Landing footer, README",
+    "test": "npm run test:e2e -- --grep @claim:open-source",
+    "sandbox": "Assert the shipped MIT license text and the public source link."
+  },
+  {
+    "id": "asset-provenance",
+    "claim": "The generated field-guide imagery has documented project provenance",
+    "where": "Landing footer, design record",
+    "test": "npm test -- --testNamePattern @claim:asset-provenance",
+    "sandbox": "Assert the source image, generation prompt, deployment identifier, and provenance record are present."
   }
 ]

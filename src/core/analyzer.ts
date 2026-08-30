@@ -1,4 +1,4 @@
-import { DEFAULT_POLICY, type Claim, type ClaimName, type Effect, type Finding, type Policy, type SafetyReport, type ToolAssessment, type ToolClaims } from './types';
+import { DEFAULT_POLICY, type Approval, type Claim, type ClaimName, type CredentialScope, type Effect, type Finding, type Policy, type Profile, type SafetyReport, type ToolAssessment, type ToolClaims } from './types';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -104,19 +104,24 @@ function assessTool(tool: JsonRecord, index: number, policy: Policy): ToolAssess
     effect: effectClaim(safety, annotations),
     approval: approvalClaim(safety),
     evidence: evidenceClaim(safety),
-    profile: stringClaim(safety, ['profile', 'browserProfile', 'profileMode']),
+    profile: enumClaim<Profile>(safety, ['profile', 'browserProfile', 'profileMode'], ['fresh', 'real', 'selectable']),
     origins: originsClaim(safety),
-    credentials: stringClaim(safety, ['credentials', 'credentialScope', 'credentialMode'])
+    credentials: enumClaim<CredentialScope>(safety, ['credentials', 'credentialScope', 'credentialMode'], ['none', 'origin-scoped', 'user-provided', 'browser-session'])
   };
   const inferredSignals = inferSignals(`${name} ${description}`);
   const findings: Finding[] = [];
 
+  for (const claimName of Object.keys(claims) as ClaimName[]) {
+    const claim = claims[claimName];
+    if (claim.invalid) findings.push(invalidFinding(claimName, claim.invalid));
+  }
+
   for (const claimName of policy.requiredClaims) {
-    if (!claims[claimName].declared) findings.push(missingFinding(claimName));
+    if (!claims[claimName].declared && !claims[claimName].invalid) findings.push(missingFinding(claimName));
   }
 
   for (const claimName of ['profile', 'origins', 'credentials'] as ClaimName[]) {
-    if (!policy.requiredClaims.includes(claimName) && !claims[claimName].declared) {
+    if (!policy.requiredClaims.includes(claimName) && !claims[claimName].declared && !claims[claimName].invalid) {
       findings.push({
         code: `undeclared-${claimName}`,
         severity: 'warning',
@@ -127,18 +132,6 @@ function assessTool(tool: JsonRecord, index: number, policy: Policy): ToolAssess
     }
   }
 
-  if (claims.effect.declared && claims.effect.value === 'unknown') {
-    findings.push({ code: 'invalid-effect', severity: 'blocker', title: 'Effect declaration is not recognized', detail: 'Use read, mutate, external-navigation, or mixed.', claim: 'effect' });
-  }
-  if (claims.evidence.declared && claims.evidence.value && (!claims.evidence.value.before || !claims.evidence.value.after)) {
-    findings.push({
-      code: 'incomplete-evidence',
-      severity: claims.effect.value === 'read' ? 'warning' : 'blocker',
-      title: 'Before/after evidence is incomplete',
-      detail: 'Declare both before and after evidence explicitly. A false value is allowed, but omission is not.',
-      claim: 'evidence'
-    });
-  }
   if ((claims.effect.value === 'external-navigation' || claims.effect.value === 'mixed') && !claims.origins.declared) {
     promote(findings, 'undeclared-origins', 'blocker');
   }
@@ -174,16 +167,23 @@ function mergeSafety(tool: JsonRecord): JsonRecord {
 
 function effectClaim(safety: JsonRecord, annotations: JsonRecord): Claim<Effect> {
   for (const key of ['effect', 'operation', 'operationType']) {
-    if (hasOwn(safety, key)) return { declared: true, value: normalizeEffect(safety[key]), source: `safety.${key}` };
+    if (hasOwn(safety, key)) {
+      const source = `safety.${key}`;
+      if (typeof safety[key] !== 'string') return invalidClaim(source, 'Use read, mutate, external-navigation, or mixed.');
+      const value = normalizeEffect(safety[key]);
+      return value === 'unknown' ? invalidClaim(source, 'Use read, mutate, external-navigation, or mixed.') : { declared: true, value, source };
+    }
   }
   if (hasOwn(safety, 'mutatesState')) {
-    return { declared: true, value: safety.mutatesState === false ? 'read' : safety.mutatesState === true ? 'mutate' : 'unknown', source: 'safety.mutatesState' };
+    if (typeof safety.mutatesState !== 'boolean') return invalidClaim('safety.mutatesState', 'Use true or false.');
+    return { declared: true, value: safety.mutatesState ? 'mutate' : 'read', source: 'safety.mutatesState' };
   }
   if (safety.externalNavigation === true) {
     return { declared: true, value: 'external-navigation', source: 'safety.externalNavigation' };
   }
   if (hasOwn(annotations, 'readOnlyHint')) {
-    return { declared: true, value: annotations.readOnlyHint === true ? 'read' : annotations.readOnlyHint === false ? 'mutate' : 'unknown', source: 'annotations.readOnlyHint' };
+    if (typeof annotations.readOnlyHint !== 'boolean') return invalidClaim('annotations.readOnlyHint', 'Use true or false.');
+    return { declared: true, value: annotations.readOnlyHint ? 'read' : 'mutate', source: 'annotations.readOnlyHint' };
   }
   if (annotations.destructiveHint === true) {
     return { declared: true, value: 'mutate', source: 'annotations.destructiveHint' };
@@ -191,11 +191,13 @@ function effectClaim(safety: JsonRecord, annotations: JsonRecord): Claim<Effect>
   return { declared: false };
 }
 
-function approvalClaim(safety: JsonRecord): Claim<string> {
+function approvalClaim(safety: JsonRecord): Claim<Approval> {
   for (const key of ['approval', 'humanApproval', 'approvalMode']) {
     if (hasOwn(safety, key)) {
       const value = safety[key];
-      return { declared: true, value: typeof value === 'boolean' ? (value ? 'required' : 'none') : String(value), source: `safety.${key}` };
+      const source = `safety.${key}`;
+      if (typeof value === 'boolean') return { declared: true, value: value ? 'required' : 'none', source };
+      return enumValueClaim<Approval>(value, source, ['required', 'optional', 'none']);
     }
   }
   return { declared: false };
@@ -205,26 +207,31 @@ function evidenceClaim(safety: JsonRecord): Claim<{ before: boolean; after: bool
   if (hasOwn(safety, 'evidence')) {
     const evidence = safety.evidence;
     if (isRecord(evidence)) {
+      const source = 'safety.evidence';
+      if (!hasOwn(evidence, 'before') || !hasOwn(evidence, 'after')) return invalidClaim(source, 'Provide both before and after as true or false.');
+      if (typeof evidence.before !== 'boolean' || typeof evidence.after !== 'boolean') return invalidClaim(source, 'Set before and after to true or false.');
       return {
-        declared: hasOwn(evidence, 'before') && hasOwn(evidence, 'after'),
-        value: { before: hasOwn(evidence, 'before'), after: hasOwn(evidence, 'after') },
-        source: 'safety.evidence'
+        declared: true,
+        value: { before: evidence.before, after: evidence.after },
+        source
       };
     }
-    if (typeof evidence === 'string') {
-      const normalized = evidence.toLowerCase();
-      return { declared: true, value: { before: normalized.includes('before') || normalized === 'none', after: normalized.includes('after') || normalized === 'none' }, source: 'safety.evidence' };
-    }
+    return invalidClaim('safety.evidence', 'Provide an object with before and after set to true or false.');
   }
-  const before = hasOwn(safety, 'beforeEvidence');
-  const after = hasOwn(safety, 'afterEvidence');
-  if (before || after) return { declared: before && after, value: { before, after }, source: 'safety.beforeEvidence/afterEvidence' };
+  const hasBefore = hasOwn(safety, 'beforeEvidence');
+  const hasAfter = hasOwn(safety, 'afterEvidence');
+  if (hasBefore || hasAfter) {
+    const source = 'safety.beforeEvidence/afterEvidence';
+    if (!hasBefore || !hasAfter) return invalidClaim(source, 'Provide both beforeEvidence and afterEvidence as true or false.');
+    if (typeof safety.beforeEvidence !== 'boolean' || typeof safety.afterEvidence !== 'boolean') return invalidClaim(source, 'Set beforeEvidence and afterEvidence to true or false.');
+    return { declared: true, value: { before: safety.beforeEvidence, after: safety.afterEvidence }, source };
+  }
   return { declared: false };
 }
 
-function stringClaim(safety: JsonRecord, keys: string[]): Claim<string> {
+function enumClaim<T extends string>(safety: JsonRecord, keys: string[], allowed: readonly T[]): Claim<T> {
   for (const key of keys) {
-    if (hasOwn(safety, key)) return { declared: true, value: String(safety[key]), source: `safety.${key}` };
+    if (hasOwn(safety, key)) return enumValueClaim(safety[key], `safety.${key}`, allowed);
   }
   return { declared: false };
 }
@@ -233,15 +240,18 @@ function originsClaim(safety: JsonRecord): Claim<string[]> {
   for (const key of ['origins', 'originScope', 'allowedOrigins']) {
     if (hasOwn(safety, key)) {
       const raw = safety[key];
-      const value = Array.isArray(raw) ? raw.map(String) : [String(raw)];
-      return { declared: true, value, source: `safety.${key}` };
+      const source = `safety.${key}`;
+      if (!Array.isArray(raw) || raw.length === 0 || raw.some((item) => typeof item !== 'string' || !isHttpOrigin(item))) {
+        return invalidClaim(source, 'Use a non-empty array of HTTP or HTTPS origins, such as https://shop.example.');
+      }
+      return { declared: true, value: raw, source };
     }
   }
   return { declared: false };
 }
 
 function normalizeEffect(value: unknown): Effect {
-  const normalized = String(value).toLowerCase().replace(/[ _]/g, '-');
+  const normalized = String(value).trim().toLowerCase().replace(/[ _]/g, '-');
   if (['read', 'read-only', 'readonly', 'observe'].includes(normalized)) return 'read';
   if (['mutate', 'mutation', 'write', 'state-change'].includes(normalized)) return 'mutate';
   if (['external-navigation', 'navigate', 'navigation', 'open-world'].includes(normalized)) return 'external-navigation';
@@ -263,6 +273,35 @@ function missingFinding(claim: ClaimName): Finding {
     detail: requiredDetail(claim),
     claim
   };
+}
+
+function invalidFinding(claim: ClaimName, detail: string): Finding {
+  return {
+    code: `invalid-${claim}`,
+    severity: 'blocker',
+    title: `${claimLabel(claim)} declaration is invalid`,
+    detail,
+    claim
+  };
+}
+
+function invalidClaim<T>(source: string, invalid: string): Claim<T> {
+  return { declared: false, source, invalid };
+}
+
+function enumValueClaim<T extends string>(value: unknown, source: string, allowed: readonly T[]): Claim<T> {
+  if (typeof value !== 'string') return invalidClaim(source, `Use one of: ${allowed.join(', ')}.`);
+  const normalized = value.trim().toLowerCase().replace(/[ _]/g, '-') as T;
+  return allowed.includes(normalized) ? { declared: true, value: normalized, source } : invalidClaim(source, `Use one of: ${allowed.join(', ')}.`);
+}
+
+function isHttpOrigin(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) && value === url.origin;
+  } catch {
+    return false;
+  }
 }
 
 function claimLabel(claim: ClaimName): string {

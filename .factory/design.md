@@ -62,6 +62,8 @@ Prompt sheet (use case `illustration-story`):
 
 Generated with the factory Azure image deployment (`factory-image`) via `/opt/fleet/lib/gen-image.sh` on 2026-08-28. Original output is project-specific and supplied under the repository's MIT license. Prompt sidecar is stored beside the source. The selected candidate must be visually inspected for artifacts before use and optimized to ≤300 KB WebP. The footer discloses generated imagery.
 
+The 1200×630 social card is a centered crop of that reviewed source, exported locally as WebP on 2026-08-30. The 180 px touch icon is a resized derivative of the original project logo. No additional generated or third-party art was introduced in repair 3.
+
 ### Native assets
 
 Small icons, risk notches, focus marks, and the logo leaf are authored in semantic HTML/CSS or local SVG. They are simple interface geometry and remain crisp without raster payload.
@@ -71,4 +73,3 @@ Small icons, risk notches, focus marks, and the logo leaf are authored in semant
 - Landing: quiet masthead; one h1 and field-guide hero; a three-step “collect / identify / preserve” strip; sample report; CLI copy block; download CTA; explicit boundary that claims are not proof.
 - Extension workspace: compact specimen header; source tabs; input envelope; summary ledger; tool specimen list; export actions. Empty, invalid, no-tool, offline, and successful states have distinct next steps.
 - Privacy and terms: plain paper documents with the same masthead and readable measure.
-

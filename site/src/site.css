@@ -53,10 +53,11 @@ h1 em { color: var(--accent); font-weight: inherit; }
 .terminal__bar strong { margin-left: auto; color: #b9c3b3; font-size: 11px; font-weight: 400; }
 .terminal pre, .format pre { margin: 0; overflow: auto; padding: 24px; font: 14px/1.7 var(--mono); }
 .terminal__comment { color: #9acb8b; }
-.terminal__copy { position: absolute; right: 10px; bottom: 10px; min-height: 36px; padding: 6px 10px; border: 1px solid #627465; color: #ecf0e5; background: #202a22; cursor: pointer; }
+.terminal__copy { position: absolute; right: 10px; bottom: 10px; min-height: 44px; padding: 8px 12px; border: 1px solid #627465; color: #ecf0e5; background: #202a22; cursor: pointer; }
 
 .format { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(400px, 1fr); gap: 64px; padding: 80px 0 110px; }
 .format > div > p:not(.eyebrow) { color: var(--muted); }
+.format > div > a { display: inline-flex; min-height: 44px; align-items: center; }
 .format pre { border-left: 5px solid var(--accent); color: var(--ink); background: var(--sheet); box-shadow: var(--shadow); }
 code { font-family: var(--mono); }
 
@@ -64,6 +65,7 @@ code { font-family: var(--mono); }
 .brand--footer { font-size: 20px; }
 .site-footer p { max-width: 56ch; color: var(--muted); font-size: 13px; }
 .site-footer nav a { min-height: 44px; display: inline-flex; align-items: center; }
+.site-footer nav span { color: var(--muted); font-size: 12px; }
 .noscript { position: fixed; inset: auto 16px 16px; z-index: 20; padding: 12px; color: var(--accent-contrast); background: var(--accent); }
 
 @media (prefers-color-scheme: dark) { .hero__figure img { mix-blend-mode: normal; opacity: 0.82; } }
@@ -94,4 +96,5 @@ code { font-family: var(--mono); }
   .cli-section, .format { padding: 72px 0; }
   .terminal pre, .format pre { font-size: 12px; }
   .site-footer { flex-direction: column; padding: 40px 20px; }
+  .site-footer nav { flex-wrap: wrap; gap: 12px 20px; }
 }

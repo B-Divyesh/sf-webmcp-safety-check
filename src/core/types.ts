@@ -1,5 +1,8 @@
 export type Severity = 'blocker' | 'warning' | 'note';
 export type Effect = 'read' | 'mutate' | 'external-navigation' | 'mixed' | 'unknown';
+export type Approval = 'required' | 'optional' | 'none';
+export type Profile = 'fresh' | 'real' | 'selectable';
+export type CredentialScope = 'none' | 'origin-scoped' | 'user-provided' | 'browser-session';
 
 export interface Finding {
   code: string;
@@ -15,15 +18,16 @@ export interface Claim<T = unknown> {
   declared: boolean;
   value?: T;
   source?: string;
+  invalid?: string;
 }
 
 export interface ToolClaims {
   effect: Claim<Effect>;
-  approval: Claim<string>;
+  approval: Claim<Approval>;
   evidence: Claim<{ before: boolean; after: boolean }>;
-  profile: Claim<string>;
+  profile: Claim<Profile>;
   origins: Claim<string[]>;
-  credentials: Claim<string>;
+  credentials: Claim<CredentialScope>;
 }
 
 export interface ToolAssessment {

@@ -3,11 +3,23 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Inspect WebMCP and MCP browser-tool safety declarations locally, export a review card, and fail CI on missing mutation, approval, or evidence claims.">
+    <meta name="description" content="Inspect WebMCP and MCP safety declarations locally. Export review cards and fail CI when required claims are missing.">
     <meta name="theme-color" content="#f4f0e3">
-    <meta property="og:title" content="WebMCP Safety Check">
-    <meta property="og:description" content="A local field guide for browser-agent safety declarations.">
+    <link rel="canonical" href="https://webmcp-safety-check.sociobot.in/">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://webmcp-safety-check.sociobot.in/">
+    <meta property="og:title" content="WebMCP Safety Check — inspect tool claims">
+    <meta property="og:description" content="Inspect WebMCP and MCP safety declarations locally before an agent acts.">
+    <meta property="og:image" content="https://webmcp-safety-check.sociobot.in/social-card.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="A botanical field-guide plate with a browser-tab-shaped fern under a hand lens">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="WebMCP Safety Check — inspect tool claims">
+    <meta name="twitter:description" content="Inspect WebMCP and MCP safety declarations locally before an agent acts.">
+    <meta name="twitter:image" content="https://webmcp-safety-check.sociobot.in/social-card.webp">
     <link rel="icon" href="/logo-mark.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <title>WebMCP Safety Check — inspect browser-agent declarations</title>
   </head>
   <body>
@@ -18,7 +30,7 @@
         <span><small>Local-first inspector</small>WebMCP Safety Check</span>
       </a>
       <nav aria-label="Primary navigation">
-        <a href="/?demo=1#inspector">Demo</a><a href="#inspector">Inspector</a><a href="#cli">CLI</a><a class="nav-download" href="/downloads/webmcp-safety-check-chrome.zip" download>Download extension</a>
+        <a href="/?demo=1#inspector">Demo</a><a href="#inspector">Inspector</a><a href="/privacy/">Privacy</a><a class="nav-download" href="/downloads/webmcp-safety-check-chrome.zip" download>Download extension</a>
       </nav>
     </header>
     <main id="main">
@@ -44,7 +56,7 @@
         <div class="section-intro"><p class="eyebrow">How it works</p><h2 id="method-title">Review browser-tool declarations in three steps.</h2></div>
         <ol>
           <li><span>01</span><div><h3>Collect</h3><p>Open a manifest or a JSON/JSONL tools/list transcript. The file stays on your device.</p></div></li>
-          <li><span>02</span><div><h3>Identify</h3><p>See explicit claims, omissions, risky combinations, and description-only signals per tool.</p></div></li>
+          <li><span>02</span><div><h3>Identify</h3><p>See explicit claims, invalid values, omissions, risky combinations, and description-only signals per tool.</p></div></li>
           <li><span>03</span><div><h3>Preserve</h3><p>Export structured JSON or a printable review card; run the same rules in CI.</p></div></li>
         </ol>
       </section>
@@ -56,7 +68,7 @@
 
       <section class="boundary" aria-labelledby="boundary-title">
         <div class="boundary__stamp" aria-hidden="true">Claim<br>≠<br>proof</div>
-        <div><p class="eyebrow">Honest boundary</p><h2 id="boundary-title">An inventory, not a trust verdict.</h2><p>Servers self-declare these properties. WebMCP Safety Check spots missing and contradictory declarations; it does not execute tasks, observe runtime behavior, scrape pages, or certify a vendor.</p></div>
+        <div><p class="eyebrow">Honest boundary</p><h2 id="boundary-title">An inventory, not a trust verdict.</h2><p>Servers self-declare these properties. WebMCP Safety Check spots missing and invalid declarations; it does not execute tasks, observe runtime behavior, scrape pages, or certify a vendor.</p></div>
       </section>
 
       <section class="cli-section" id="cli" aria-labelledby="cli-title">
@@ -88,8 +100,8 @@ node webmcp-safety-check.mjs manifest.json \
 }</code></pre></section>
     </main>
     <footer class="site-footer">
-      <div><a class="brand brand--footer" href="/"><img src="/logo-mark.svg" width="36" height="36" alt=""><span>WebMCP Safety Check</span></a><p>Free, local-first, and open source. Generated field-guide imagery is original to this project.</p></div>
-      <nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-webmcp-safety-check">Source</a></nav>
+      <div><a class="brand brand--footer" href="/"><img src="/logo-mark.svg" width="36" height="36" alt=""><span>WebMCP Safety Check</span></a><p>Free, local-first, and open source. Generated field-guide imagery has documented project provenance.</p></div>
+      <nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-webmcp-safety-check" aria-label="Source code on GitHub (external site)">Source</a><span>Built by Param Factory · v1.0.1</span></nav>
     </footer>
     <noscript><p class="noscript">JavaScript is required for local analysis. The CLI remains available as a download.</p></noscript>
     <script type="module" src="/src/main.ts"></script>

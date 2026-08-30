@@ -1,6 +1,6 @@
 # WebMCP Safety Check
 
-WebMCP Safety Check is a local-first browser extension, web inspector, and CLI for teams deciding whether browser-resident MCP tools are ready for agent exposure. It reads a tool manifest or MCP `tools/list` session transcript, inventories declared safety properties, and flags missing claims before a tool is callable in production.
+WebMCP Safety Check is a local-first checker for teams reviewing browser-resident MCP tools. It runs as a browser extension, web inspector, and CLI. It inventories declared safety properties and flags missing claims before an agent can call a tool.
 
 It does **not** execute tools, read browser pages, verify server behavior, or certify a vendor. Server declarations are claims, not proof.
 
@@ -19,14 +19,14 @@ For every discovered tool, the checker records:
 
 The default CI policy fails when effect, approval, or evidence declarations are absent. Profile, origin, and credential gaps are warnings unless a stricter policy makes them required. External navigation without origin scope and real-profile use without credential scope are always blockers.
 
-Supported input is a JSON manifest with a `tools` array, a JSON-RPC `tools/list` response or transcript array, JSONL transcript events, or a single tool object. Files are limited to 2 MB in the browser UI.
+Supported input includes JSON manifests, JSON-RPC `tools/list` responses, transcript arrays, JSONL events, and single tool objects. The browser UI accepts files up to and including 2 MB.
 
 ## Run locally
 
 Requirements: Node.js 20+ and npm.
 
 ```bash
-npm install
+npm ci
 npm run dev          # WXT extension development
 npm run dev:site     # site at http://localhost:5173
 npm test
@@ -42,10 +42,9 @@ The exact production build command is `npm run build`. It creates:
 - `dist/cli/webmcp-safety-check.mjs` — local CLI artifact;
 - `.output/chrome-mv3/` — unpacked development extension.
 
-To test the production pages in Chromium at desktop and 390 px widths:
+The browser suite builds its own production artifacts, then tests desktop and 390 px widths:
 
 ```bash
-npm run build
 npm run test:e2e
 ```
 
@@ -56,7 +55,7 @@ npm run test:e2e
 3. Choose **Load unpacked** and select `.output/chrome-mv3/`.
 4. Pin **WebMCP Safety Check**, open it, and choose or paste a manifest/transcript.
 
-The extension requests no permissions or host access. It keeps input in page memory only and works offline.
+The extension requests no permissions or host access. It keeps input in page memory only.
 
 ## Use the CLI in CI
 
@@ -101,11 +100,28 @@ The checker recognizes `x-webmcp-safety`, `metadata.safety`, `_meta.safety`, or 
 
 Explicit `false` evidence values are valid declarations; omission is the finding. This format is intentionally a checker contract, not a claim of standards compatibility. Track specification changes before relying on new fields.
 
+The checker validates the documented values. Approval accepts `required`, `optional`, or `none`. Profile accepts `fresh`, `real`, or `selectable`. Credential scope accepts `none`, `origin-scoped`, `user-provided`, or `browser-session`. Origins must be a non-empty array of HTTP or HTTPS origins. Invalid values block the review instead of counting toward declaration coverage.
+
 ## Privacy, security, and scope
 
-There are no analytics, network submissions, CDN scripts, or third-party fonts. The site service worker precaches the versioned application shell and public examples for offline inspection; it never caches input or reports. Inputs and reports are not persisted; exports are user-initiated downloads. `site/staticwebapp.config.json` is deployed with the static site and protects real download files from the navigation fallback, sets immutable caching for fingerprinted assets, and supplies the restrictive CSP and Permissions-Policy. See the deployed `/privacy/` and `/terms/` documents.
+There are no analytics, network submissions, CDN scripts, or third-party fonts. The site service worker precaches the versioned application shell and public examples for offline inspection; it never caches input or reports. Inputs and reports are not persisted; exports are user-initiated downloads. `site/staticwebapp.config.json` serves a designed 404 response, sets immutable caching for fingerprinted assets, and supplies the restrictive CSP and Permissions-Policy. See the deployed `/privacy/` and `/terms/` documents.
 
 Generated illustration provenance and the complete visual system are recorded in [.factory/design.md](.factory/design.md). Product verification and known gaps are in [.factory/handoff.md](.factory/handoff.md).
+
+## Deploy
+
+Factory workers deploy only the built static root for this product:
+
+```bash
+npm ci
+npm test
+npm run typecheck
+npm run lint
+npm run build
+/opt/fleet/lib/deploy-static.sh webmcp-safety-check dist/site
+```
+
+After deployment, verify both `/downloads/` URLs return attachment responses and compare their SHA-256 hashes with the local artifacts. No API, database, DNS, or billing configuration belongs in this repository.
 
 ## License
 
