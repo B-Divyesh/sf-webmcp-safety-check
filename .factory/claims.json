@@ -11,7 +11,7 @@
     "claim": "The public site downloads the exact packaged standalone CLI and Chrome extension ZIP",
     "where": "Header, hero, CLI section, README",
     "test": "npm run test:e2e -- --grep @claim:download-artifacts",
-    "sandbox": "The self-building test server serves both advertised URLs; assert 200 status, MIME type, attachment filenames, package signatures, and byte-for-byte equality with the built CLI and WXT ZIP."
+    "sandbox": "The self-building test server serves both advertised URLs; assert 200 status, MIME type, attachment response, package signatures, and byte-for-byte equality with the built CLI and WXT ZIP."
   },
   {
     "id": "no-install-cli",

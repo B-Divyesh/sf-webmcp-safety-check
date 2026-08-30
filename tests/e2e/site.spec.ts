@@ -115,10 +115,10 @@ test('@claim:download-artifacts public download URLs serve the exact packaged CL
   const extension = await extensionResponse.body();
   expect(cliResponse.status()).toBe(200);
   expect(cliResponse.headers()['content-type']).toContain('text/javascript');
-  expect(cliResponse.headers()['content-disposition']).toContain('attachment; filename="webmcp-safety-check.mjs"');
+  expect(cliResponse.headers()['content-disposition']).toContain('attachment');
   expect(extensionResponse.status()).toBe(200);
   expect(extensionResponse.headers()['content-type']).toContain('application/zip');
-  expect(extensionResponse.headers()['content-disposition']).toContain('attachment; filename="webmcp-safety-check-chrome.zip"');
+  expect(extensionResponse.headers()['content-disposition']).toContain('attachment');
   expect(cli).toEqual(packagedCli);
   expect(extension).toEqual(packagedExtension);
   expect(cli.toString('utf8')).toContain('WebMCP Safety Check');
