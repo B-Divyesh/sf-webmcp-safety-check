@@ -21,5 +21,7 @@ copyButton?.addEventListener('click', async () => {
 });
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => { void navigator.serviceWorker.register('/sw.js'); });
+  const registerServiceWorker = (): void => { void navigator.serviceWorker.register('/sw.js'); };
+  if (document.readyState === 'complete') registerServiceWorker();
+  else window.addEventListener('load', registerServiceWorker, { once: true });
 }
