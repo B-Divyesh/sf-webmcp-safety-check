@@ -1,0 +1,37 @@
+[
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit",
+    "where": "Inspector offline notice, README",
+    "test": "npm run test:e2e -- --grep @claim:offline-reload",
+    "sandbox": "Fresh browser context visits the site online, waits for the service worker, goes offline, reloads, and analyzes the shipped sample."
+  },
+  {
+    "id": "download-artifacts",
+    "claim": "Downloads a standalone CLI and Chrome extension package",
+    "where": "Landing-page download links, README",
+    "test": "npm run test:e2e -- --grep @claim:download-artifacts",
+    "sandbox": "Production build; assert both static artifacts exist, have their expected signatures, and are excluded from navigation fallback."
+  },
+  {
+    "id": "demo-sandbox",
+    "claim": "Try the checker with sample data that is not saved",
+    "where": "Landing-page primary action, demo banner",
+    "test": "npm run test:e2e -- --grep @claim:demo-sandbox",
+    "sandbox": "Fresh browser context opens /?demo=1, sees an analyzed sample, resets it, and confirms browser storage remains empty."
+  },
+  {
+    "id": "json-export",
+    "claim": "Exports the review as JSON",
+    "where": "Inspector report action, landing-page method section",
+    "test": "npm run test:e2e -- --grep @claim:json-export",
+    "sandbox": "Fresh demo context analyzes the shipped sample, downloads JSON, and parses the result."
+  },
+  {
+    "id": "local-only",
+    "claim": "Inspects inputs locally without third-party requests",
+    "where": "Landing-page facts, privacy page, README",
+    "test": "npm run test:e2e -- --grep @claim:local-only",
+    "sandbox": "Record every HTTP request from a fresh demo inspection and assert the only origin is the product's own origin."
+  }
+]

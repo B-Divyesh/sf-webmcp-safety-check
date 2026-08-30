@@ -47,7 +47,7 @@ test('privacy and terms each expose a single accessible document heading', async
   }
 });
 
-test('offline reload keeps the locally cached inspector runnable', async ({ page, context }) => {
+test('@claim:offline-reload offline reload keeps the locally cached inspector runnable', async ({ page, context }) => {
   const consoleErrors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
   await page.goto('/');
@@ -69,7 +69,7 @@ test('offline reload keeps the locally cached inspector runnable', async ({ page
   }
 });
 
-test('release configuration preserves real downloadable artifacts and static hardening', async () => {
+test('@claim:download-artifacts release configuration preserves real downloadable artifacts and static hardening', async () => {
   const root = resolve(process.cwd(), 'dist/site');
   const [cli, extension, config] = await Promise.all([
     readFile(resolve(root, 'downloads/webmcp-safety-check.mjs'), 'utf8'),
@@ -88,4 +88,37 @@ test('release configuration preserves real downloadable artifacts and static har
   expect(parsed.globalHeaders['Content-Security-Policy']).toContain("default-src 'self'");
   expect(parsed.globalHeaders['Permissions-Policy']).toContain('camera=()');
   expect(parsed.routes.find((route) => route.route === '/assets/*')?.headers['Cache-Control']).toContain('immutable');
+});
+
+test('@claim:demo-sandbox demo loads a resettable sample without persisted data', async ({ page }) => {
+  await page.goto('/?demo=1#inspector');
+  await expect(page.getByLabel('Demo status')).toContainText('Demo — sample data, nothing is saved');
+  await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
+  await expect(page.locator('[data-input]')).toHaveValue(/place_order/);
+  const storage = await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }));
+  expect(storage).toEqual({ local: 0, session: 0 });
+});
+
+test('@claim:json-export exports the generated report as JSON', async ({ page }) => {
+  await page.goto('/?demo=1#inspector');
+  await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export report JSON' }).click();
+  const exported = await download;
+  expect(exported.suggestedFilename()).toBe('webmcp-safety-report.json');
+  const contents = await readFile(await exported.path()!, 'utf8');
+  expect(JSON.parse(contents)).toMatchObject({ summary: { status: 'block' } });
+});
+
+test('@claim:local-only inspection makes no third-party requests', async ({ page }) => {
+  const origins = new Set<string>();
+  page.on('request', (request) => {
+    const url = new URL(request.url());
+    if (url.protocol.startsWith('http')) origins.add(url.origin);
+  });
+  await page.goto('/?demo=1#inspector');
+  await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
+  expect([...origins]).toEqual(['http://127.0.0.1:4173']);
 });

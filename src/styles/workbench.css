@@ -1,5 +1,8 @@
 .workbench { width: 100%; }
 .workbench__heading { max-width: 68ch; margin: 0 0 20px; color: var(--muted); }
+.demo-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--accent); border-inline-start-width: 4px; background: color-mix(in srgb, var(--accent) 8%, var(--sheet)); }
+.demo-note__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.demo-note .quiet-button { min-height: 36px; border-color: var(--rule); color: var(--accent); background: var(--sheet); }
 .offline-note, .error-note, .success-note {
   margin: 0 0 16px;
   padding: 12px 16px;
@@ -131,6 +134,7 @@
 .undo-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border: 1px solid var(--rule); background: var(--sheet); }
 
 @media (max-width: 640px) {
+  .demo-note { align-items: flex-start; flex-direction: column; }
   .report__mast, .specimen { grid-template-columns: 1fr; }
   .coverage { text-align: left; }
   .summary-list { grid-template-columns: repeat(2, 1fr); }

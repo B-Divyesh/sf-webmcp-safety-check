@@ -24,7 +24,11 @@ const SAMPLE = `{
   ]
 }`;
 
-export function mountWorkbench(root: HTMLElement): void {
+export interface WorkbenchOptions {
+  demo?: boolean;
+}
+
+export function mountWorkbench(root: HTMLElement, options: WorkbenchOptions = {}): void {
   let currentReport: SafetyReport | undefined;
   let lastCleared = '';
   let undoTimer: number | undefined;
@@ -33,6 +37,7 @@ export function mountWorkbench(root: HTMLElement): void {
     <section class="workbench" aria-labelledby="workbench-title">
       <h2 id="workbench-title" class="visually-hidden">Manifest inspection workbench</h2>
       <p class="workbench__heading">Choose a manifest or paste a JSON/JSONL session transcript. The check runs entirely in this browser.</p>
+      ${options.demo ? `<aside class="demo-note" data-demo-banner aria-label="Demo status"><span><strong>Demo — sample data, nothing is saved.</strong> This sample stays in page memory.</span><span class="demo-note__actions"><button class="quiet-button" type="button" data-reset-demo>Reset demo</button><a class="quiet-button" href="/">Start for real</a></span></aside>` : ''}
       <div class="offline-note" data-offline hidden><strong>Offline fieldwork.</strong> Analysis and export still work; downloads and documentation links may not.</div>
       <div class="error-note" data-error role="alert" tabindex="-1" hidden></div>
       <div class="source-tabs" role="tablist" aria-label="Input method">
@@ -104,7 +109,9 @@ export function mountWorkbench(root: HTMLElement): void {
   };
 
   root.querySelector('[data-analyze]')?.addEventListener('click', () => inspect(input.value, 'Pasted document'));
-  root.querySelector('[data-sample]')?.addEventListener('click', () => { input.value = SAMPLE; inspect(input.value, 'Incomplete sample'); });
+  const loadSample = (): void => { input.value = SAMPLE; inspect(input.value, 'Incomplete sample'); };
+  root.querySelector('[data-sample]')?.addEventListener('click', loadSample);
+  root.querySelector('[data-reset-demo]')?.addEventListener('click', loadSample);
   root.querySelector('[data-clear]')?.addEventListener('click', () => {
     lastCleared = input.value;
     input.value = '';
@@ -176,6 +183,11 @@ export function mountWorkbench(root: HTMLElement): void {
   window.addEventListener('online', updateOnline);
   window.addEventListener('offline', updateOnline);
   updateOnline();
+
+  if (options.demo) {
+    activateTab(required<HTMLButtonElement>(root, '#tab-paste'));
+    loadSample();
+  }
 }
 
 function emptyState(title = 'No specimens collected', body = 'Choose a manifest, drop a transcript, or load the sample to produce a review card.'): string {

@@ -5,7 +5,9 @@ import { mountWorkbench } from '../../src/ui/workbench';
 
 const workbench = document.querySelector<HTMLElement>('#workbench');
 if (!workbench) throw new Error('Inspector root was not found.');
-mountWorkbench(workbench);
+const demo = new URLSearchParams(window.location.search).get('demo') === '1';
+mountWorkbench(workbench, { demo });
+if (demo) document.title = 'Demo — WebMCP Safety Check';
 
 const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-cli]');
 copyButton?.addEventListener('click', async () => {

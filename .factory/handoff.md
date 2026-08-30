@@ -1,74 +1,56 @@
-# WebMCP Safety Check — verification handoff
+# WebMCP Safety Check — repair handoff
 
-## Independent verification verdict: **FAIL**
+Work order: `webmcp-safety-check-repair-2`  
+Base verifier candidate: `23175b5a35efeb85358710f4e2922312435143f2`  
+Repair branch base: `7dce439851f12da64c4cc9f9aeea81786b52c55e`
 
-Verified `2026-08-28T02:31:19Z` against candidate `23175b5a35efeb85358710f4e2922312435143f2` and <https://webmcp-safety-check.sociobot.in>.
+## Reproduced failure
 
-The full evidence is in [`.factory/verification.md`](verification.md). Product code was not modified during verification.
-
-Blocking failures:
-
-- **P0 deployment:** the live extension and CLI download URLs both return the 7,349-byte homepage as `text/html`, rather than the 205,855-byte zip and 16,891-byte CLI built by the candidate.
-- **P1 CLI:** the documented stdin invocation using `-` exits `2` before reading stdin in a clean packed consumer install.
-
-Additional required fixes: offline service-worker reload has no functional inspector because a JS module receives the HTML fallback; live hashed assets are cached for only 30 seconds and are not immutable; CSP and Permissions-Policy headers are absent.
-
-Passing evidence: clean `npm ci`; 6/6 unit tests; strict typecheck; exact production build; 6/6 desktop/mobile Playwright tests; extension popup smoke test; live axe serious/critical zero at desktop and 390 px; no load-time console/page errors or third-party runtime requests; production dependency audit clean; bundle budgets and local Lighthouse scores pass.
-
-Do not mark this release as shipped until the P0/P1 items are fixed and the deployed artifacts are retested.
-
----
-
-# Original builder handoff (superseded by the independent FAIL verdict above)
-
-Work order: `webmcp-safety-check-build-1`  
-Completed: 2026-08-28
-
-## What shipped
-
-- A WXT + TypeScript Manifest V3 extension with zero permissions and zero host access. Its popup accepts local JSON/JSONL files, drag-and-drop, or pasted input; analysis and exports work offline.
-- A shared safety engine that extracts tools from manifests, single tool documents, JSON-RPC `tools/list` transcripts, transcript arrays, and JSONL. It inventories effect, approval, evidence, profile, origins, and credential claims.
-- Findings for missing declarations plus combination checks: external navigation without origin scope and real-profile use without credential scope are blockers. Description keywords are explicitly labeled as hints and never substitute for declarations.
-- Exportable JSON reports, Markdown review cards, printable cards, clear/error/loading/offline/empty states, five-second undo for clearing input, keyboard-operated tabs, and a 2 MB browser-side input guard.
-- A standalone Node 20+ CLI with Markdown/JSON output, stdin support, output files, custom policy files, `--strict`, and stable CI exits (`0` pass, `1` policy findings, `2` input/config error).
-- A responsive static landing site with the complete local inspector, extension/CLI downloads, specification boundary, example format, privacy page, terms page, and versioned offline service worker.
-- A product-specific botanical field-guide system and original generated hero illustration. Source prompt/provenance is in `.factory/design.md` and `assets/src/`; shipped WebP variants are 33 KB and 140 KB.
-- Documentation, MIT license, JSON policy schema, complete/incomplete example manifests, unit tests, Playwright interaction tests, and axe checks.
-
-## Build and verification
-
-Exact clean build:
+The verifier's exact stdin defect was reproduced from an isolated worktree at the failed candidate. After `npm ci` and `npm run build:cli`, this command:
 
 ```bash
-npm install
+cat public/examples/safe-manifest.json | node dist/cli/webmcp-safety-check.mjs - --strict
+```
+
+printed `Error: Provide a manifest/transcript path, or - to read stdin...` and exited `2`.
+
+## Repairs
+
+- The CLI parser now treats the literal `-` as its documented stdin source while still excluding option values. `tests/cli.integration.test.ts` builds, packs, installs, and runs the CLI from a clean temporary consumer installation.
+- Static deployment configuration excludes `/downloads/*` from navigation fallback, declares `.mjs` and `.zip` MIME types, sends the extension/CLI as attachments, caches hashed assets immutably, and adds restrictive CSP and Permissions-Policy headers.
+- The generated service worker now precaches the built fingerprinted JS/CSS shell, versions its cache from the complete shell contents, and only returns the document shell for navigations. Offline module requests now fail safely instead of receiving HTML.
+- `/?demo=1#inspector` is a one-click, in-memory sample sandbox. It shows the persistent demo banner, a reset action, and an explicit return to the empty real inspector. No demo or real input uses browser storage.
+- `.factory/claims.json`, `.factory/demo.md`, and `.factory/copy-audit.md` record the testable promises, sandbox behavior, and final plain-language audit.
+
+## Verification
+
+Run from a clean checkout with Node 20+:
+
+```bash
+npm ci
 npm test
 npm run typecheck
 npm run build
 npm run test:e2e
+npm audit --omit=dev --audit-level=high
 ```
 
-Verified in this work order:
+Current worker evidence:
 
-- `npm test`: 6/6 unit tests passed.
-- `npm run typecheck`: passed with strict TypeScript.
-- `npm run build`: passed; deployment entry is `dist/site/index.html`.
-- `npm run test:e2e`: 6/6 passed across desktop Chromium and a 390 × 844 mobile viewport. This covers parsing, missing required declarations, safe manifests, keyboard tab navigation, legal pages, console errors, and axe scans; no serious/critical axe findings.
-- CLI smoke test: incomplete example exited `1` with five blockers; complete example exited `0` with 100% declaration coverage.
-- Production Lighthouse mobile run: Performance 100, Accessibility 100, Best Practices 100, SEO 100. LCP 1.39 s, FCP 0.99 s, CLS 0, Total Blocking Time 0 ms. Lab INP was unavailable because the run had no recorded user interaction; tested interactions complete synchronously and the 0 ms TBT is the lab responsiveness proxy.
-- Production site payload: 18.36 KB initial application JavaScript (6.72 KB gzip), 12.82 KB largest page CSS (3.53 KB gzip), 33 KB mobile hero, no fonts. These are below the 200 KB JS, 50 KB CSS, 120 KB font, and 300 KB hero budgets.
-- `npm audit --omit=dev`: zero production vulnerabilities.
-- Visual review completed at desktop and 390 px. The generated hero contains no text artifacts, brands, people, or misleading UI.
+- `npm test`: 7/7 passed, including the packed clean-consumer stdin regression.
+- `npm run typecheck`: passed.
+- `npm run build`: passed; produced `dist/site/`, the 17,187-byte standalone CLI, and the 206,458-byte Chrome zip (`PK` signature).
+- `npm run test:e2e`: 16/16 passed across desktop Chromium and the 390 × 844 mobile project. It includes axe serious/critical checks, keyboard tab-arrow interaction, console checks, offline reload, downloads, demo isolation, JSON export, and request-origin privacy coverage.
+- Every command in `.factory/claims.json` passed independently on both browser projects.
+- `npm audit --omit=dev --audit-level=high`: 0 production vulnerabilities.
+- Built MV3 manifest: `permissions: []`, `host_permissions: []`.
 
-Artifacts:
+## Deployment verification
 
-- Static deploy: `dist/site/`
-- Chrome MV3 zip: `dist/site/downloads/webmcp-safety-check-chrome.zip`
-- Standalone CLI: `dist/site/downloads/webmcp-safety-check.mjs`
-- Unpacked extension: `.output/chrome-mv3/` after build
+The static build is ready at `dist/site/`. After deployment, re-run `/opt/fleet/lib/verify-url.sh https://webmcp-safety-check.sociobot.in <evidence-dir>` and check both `/downloads/` artifacts for their content types, content disposition, bytes, and SHA-256 values. Record the live result below before accepting the release.
 
-## Known gaps and next steps
+## Known gaps
 
-- The policy field names are an honest checker contract, not an asserted WebMCP standard. Reconcile aliases and semantics as MCP/WebMCP safety-contract proposals stabilize, then version the report schema.
-- Declarations remain self-reported claims. Runtime observation, vendor certification, task execution, and browser-content inspection are intentionally out of scope.
-- The downloadable extension is an unsigned Chrome-compatible development zip. Store signing and deployment are factory responsibilities; Firefox packaging has not been claimed or tested.
-- No live INP field data exists for a new, analytics-free product. Keep the current interaction tests and re-measure with privacy-preserving aggregate field data only if the factory later adopts it.
+- The checker evaluates declarations, not runtime behavior, browser content, task execution, vendor trust, or specification compliance.
+- The Chrome extension zip is unsigned; store signing and publishing remain factory responsibilities.
+- The format is an intentionally versioned checker contract, not a claimed WebMCP standard.
