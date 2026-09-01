@@ -6,7 +6,9 @@ export default defineConfig({
   workers: 1,
   use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure' },
   webServer: {
-    command: 'npm run build && npm run preview',
+    // Exercise the deployment entry point from an empty artifact directory.
+    // This catches a site build that renders valid pages but omits downloads.
+    command: 'npm run clean && npm run build:site && npm run preview',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: false,
     timeout: 120_000

@@ -1,12 +1,17 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { execFile as execFileCallback } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFile = promisify(execFileCallback);
+
+function sha256(contents: Buffer): string {
+  return createHash('sha256').update(contents).digest('hex');
+}
 
 function parseRgb(color: string): [number, number, number] {
   const values = color.match(/\d+(?:\.\d+)?/g)?.slice(0, 3).map(Number);
@@ -98,13 +103,16 @@ test('@claim:offline-reload offline reload keeps the locally cached inspector ru
 
 test('@claim:download-artifacts public download URLs serve the exact packaged CLI and extension ZIP', async ({ request }) => {
   const root = resolve(process.cwd(), 'dist/site');
-  const [cliResponse, extensionResponse, config, serviceWorker, packagedCli, packagedExtension] = await Promise.all([
+  const sourceExtensionName = (await readdir(resolve('.output'))).find((name) => name.includes('chrome') && name.endsWith('.zip'));
+  expect(sourceExtensionName).toBeTruthy();
+  const [cliResponse, extensionResponse, config, serviceWorker, packagedCli, packagedExtension, sourceExtension] = await Promise.all([
     request.get('/downloads/webmcp-safety-check.mjs'),
     request.get('/downloads/webmcp-safety-check-chrome.zip'),
     readFile(resolve(root, 'staticwebapp.config.json'), 'utf8'),
     readFile(resolve(root, 'sw.js'), 'utf8'),
     readFile(resolve('dist/cli/webmcp-safety-check.mjs')),
-    readFile(resolve(root, 'downloads/webmcp-safety-check-chrome.zip'))
+    readFile(resolve(root, 'downloads/webmcp-safety-check-chrome.zip')),
+    readFile(resolve('.output', sourceExtensionName!))
   ]);
   const parsed = JSON.parse(config) as {
     responseOverrides: Record<string, { rewrite: string }>;
@@ -121,6 +129,9 @@ test('@claim:download-artifacts public download URLs serve the exact packaged CL
   expect(extensionResponse.headers()['content-disposition']).toContain('attachment');
   expect(cli).toEqual(packagedCli);
   expect(extension).toEqual(packagedExtension);
+  expect(extension).toEqual(sourceExtension);
+  expect(sha256(cli)).toBe(sha256(packagedCli));
+  expect(sha256(extension)).toBe(sha256(sourceExtension));
   expect(cli.toString('utf8')).toContain('WebMCP Safety Check');
   expect(extension.subarray(0, 2).toString()).toBe('PK');
   expect(extension.byteLength).toBeGreaterThan(1_000);

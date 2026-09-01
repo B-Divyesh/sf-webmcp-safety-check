@@ -1,14 +1,19 @@
 import AxeBuilder from '@axe-core/playwright';
 import { chromium } from '@playwright/test';
+import { execFile as execFileCallback } from 'node:child_process';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { promisify } from 'node:util';
 
-const extensionPath = resolve('.output/chrome-mv3');
+const execFile = promisify(execFileCallback);
+const packageDirectory = await mkdtemp(join(tmpdir(), 'webmcp-extension-package-'));
+const extensionPath = join(packageDirectory, 'extension');
 const profile = await mkdtemp(join(tmpdir(), 'webmcp-extension-'));
 const errors = [];
 
 try {
+  await execFile('unzip', ['-q', resolve('dist/site/downloads/webmcp-safety-check-chrome.zip'), '-d', extensionPath]);
   const context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium',
     headless: false,
@@ -55,5 +60,8 @@ try {
     await context.close();
   }
 } finally {
-  await rm(profile, { recursive: true, force: true });
+  await Promise.all([
+    rm(profile, { recursive: true, force: true }),
+    rm(packageDirectory, { recursive: true, force: true })
+  ]);
 }

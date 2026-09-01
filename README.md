@@ -34,7 +34,7 @@ npm run typecheck
 npm run build
 ```
 
-The exact production build command is `npm run build`. It creates:
+Both `npm run build` and the deployment entry point `npm run build:site` create the complete static release. They create:
 
 - `dist/site/index.html` — static deployment root;
 - `dist/site/downloads/webmcp-safety-check-chrome.zip` — packaged MV3 extension;
@@ -42,7 +42,7 @@ The exact production build command is `npm run build`. It creates:
 - `dist/cli/webmcp-safety-check.mjs` — local CLI artifact;
 - `.output/chrome-mv3/` — unpacked development extension.
 
-The browser suite builds its own production artifacts, then tests desktop and 390 px widths:
+The browser suite deletes prior artifacts, runs `npm run build:site`, then tests desktop and 390 px widths:
 
 ```bash
 npm run test:e2e
