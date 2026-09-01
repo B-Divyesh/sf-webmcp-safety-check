@@ -1,43 +1,37 @@
-# WebMCP Safety Check — verification 5 handoff
+# WebMCP Safety Check — review 1 handoff
 
-## Result: PASS
+## Result: FAIL
 
-Independent product QA passed for candidate `0511ce5e99b76dc36e9e464e83c439f359a627e1` at <https://webmcp-safety-check.sociobot.in> on 2026-09-01.
+Critical first-read QA was completed against commit `69e5ea756c3a75799d39049cba0701ec360c46da` and the live site on 2026-09-01. Product code was not changed.
 
-The earlier production download failure is resolved. Both the standalone CLI and Chrome extension ZIP return 200 with the correct types and attachment headers, match the candidate byte-for-byte, and work in their clean consumer checks. All 27 deployed product files match `dist/site`.
+The first screen explains the job, audience, primary action, and expected sample. The live downloads match the local build, all 22 registered claim commands pass, the full test and build gates pass, offline use works, and recorded browser requests stay on the product origin.
 
-## Verification summary
+Two blocking demo findings remain:
 
-- All 22 exact `.factory/claims.json` checks passed after `npm ci`.
+- Selecting **Try it with sample data** changes the URL and loads the sample, but both phone and desktop viewports remain on the landing headline. The demo notice and populated review are far below the viewport.
+- The shipped standalone CLI has no `--demo` or `demo` command that runs bundled sample data from a new temporary directory.
+
+The review also records route metadata, touch-target, first-screen fact, copy, terminology, control-label, and 404 copy findings. Full evidence and proposed corrections are in `.factory/review-1.md`.
+
+## Verification performed
+
+- All 22 exact commands from `.factory/claims.json`: passed.
 - `npm test`: 14/14 passed.
-- `npm run lint` and `npm run typecheck`: passed.
-- `npm run build`: passed and produced the complete release under `dist/site`.
-- `npm run test:e2e`: 44/44 passed on desktop and 390×844 mobile.
-- `npm run test:extension`: passed from the distributed ZIP.
-- Clean packed CLI consumer: file, stdin, policy exit codes, invalid input, and output-file paths passed.
-- Live one-click demo, complete input, empty input, malformed input, recovery, 2 MiB boundary, policy combinations, exports, reset, exit, clear, and undo passed.
-- Live traffic remained same-origin GET only; console/page/request errors were zero; private input was absent from browser storage and offline caches.
-- Live axe: zero violations on desktop light and mobile dark/reduced-motion checks.
-- Keyboard skip link, visible focus, arrow-key tabs, 44px mobile targets, and no 390px overflow passed.
-- Service-worker update and offline demo reload passed.
-- Security headers, immutable asset caching, no-cache service worker, routes, metadata, links, and designed 404 passed.
-- Lighthouse mobile: 100 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.12 s, TBT 41.5 ms, CLS 0, 49,888 bytes transferred.
-- Initial JS 20,100 bytes raw / 7,359 bytes gzip; CSS 13,553 bytes raw / 3,648 bytes gzip; mobile hero 32,920 bytes; no web fonts.
-
-Full evidence and exact artifact hashes are in `.factory/verification-5.md`.
-
-## Defects and known gaps
-
-None found. No P0, P1, P2, or P3 product defect remains open.
-
-The product is static and has no server-side endpoint, account flow, product-unlock call, or persistent backend, so request-allowance, server concurrency, database-boundary, and Entra checks do not apply.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed and produced `dist/site`.
+- `npm run test:e2e`: 44/44 passed.
+- `npm run test:extension`: passed; axe 0, console 0, external requests 0, storage 0.
+- `/opt/fleet/lib/verify-url.sh`: HTTP 200, 651 ms load, one h1, one main, language/title/alt checks passed, console errors 0.
+- Live axe checks: zero violations on desktop light and mobile dark/reduced-motion.
+- Live offline demo reload: passed with a controlling service worker and no console errors.
+- Live request log: same-origin GET requests only.
+- Live CLI and extension downloads: HTTP 200 with attachment headers and byte-for-byte local matches.
 
 ## Reproduce
 
 ```bash
 npm ci
-npm audit --audit-level=moderate
-npm audit --omit=dev --audit-level=high
 npm test
 npm run lint
 npm run typecheck
@@ -46,4 +40,8 @@ npm run test:e2e
 npm run test:extension
 ```
 
-Deployable root: `dist/site`. No product code or deployment was changed during verification.
+Open the live home page at 390×844, select **Try it with sample data**, and capture the viewport. The URL becomes `/?demo=1#inspector`, but the viewport remains at the hero while `#inspector`, the demo notice, and `#report-title` begin well below it.
+
+## Next steps
+
+Correct every finding in `.factory/review-1.md`, add regression coverage for the landing-to-demo viewport and focus result, provide a CLI sample command, then repeat the entire review from a fresh context.
