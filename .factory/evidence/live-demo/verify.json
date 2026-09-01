@@ -1,0 +1,14 @@
+{
+  "url": "https://webmcp-safety-check.sociobot.in/demo/",
+  "loadMs": 817,
+  "errors": [],
+  "a11y": {
+    "title": "Demo — WebMCP Safety Check",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 2124
+  }
+}

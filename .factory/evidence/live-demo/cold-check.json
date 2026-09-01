@@ -1,0 +1,99 @@
+{
+  "result": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900,
+        "name": "desktop"
+      },
+      "url": "https://webmcp-safety-check.sociobot.in/demo/",
+      "focus": true,
+      "banner": {
+        "x": 240,
+        "y": 407.5,
+        "width": 960,
+        "height": 123.59375
+      },
+      "report": {
+        "x": 240,
+        "y": 584.564208984375,
+        "width": 747.34375,
+        "height": 42
+      },
+      "errors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "name": "mobile"
+      },
+      "url": "https://webmcp-safety-check.sociobot.in/demo/",
+      "focus": true,
+      "banner": {
+        "x": 20,
+        "y": 350.515625,
+        "width": 350,
+        "height": 234.78125
+      },
+      "report": {
+        "x": 20,
+        "y": 639.794677734375,
+        "width": 350,
+        "height": 29.390625
+      },
+      "errors": []
+    }
+  ],
+  "routes": [
+    {
+      "path": "/demo/",
+      "status": 200,
+      "url": "https://webmcp-safety-check.sociobot.in/demo/",
+      "title": "Demo — WebMCP Safety Check",
+      "h1": "Review sample browser tools"
+    },
+    {
+      "path": "/?demo=1",
+      "status": 200,
+      "url": "https://webmcp-safety-check.sociobot.in/demo/",
+      "title": "Demo — WebMCP Safety Check",
+      "h1": "Review sample browser tools"
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "url": "https://webmcp-safety-check.sociobot.in/privacy/",
+      "title": "Privacy — WebMCP Safety Check",
+      "h1": "Privacy"
+    },
+    {
+      "path": "/terms/",
+      "status": 200,
+      "url": "https://webmcp-safety-check.sociobot.in/terms/",
+      "title": "Terms — WebMCP Safety Check",
+      "h1": "Terms"
+    },
+    {
+      "path": "/missing-page",
+      "status": 404,
+      "url": "https://webmcp-safety-check.sociobot.in/missing-page",
+      "title": "Page not found — WebMCP Safety Check",
+      "h1": "We could not find this page."
+    }
+  ],
+  "targets": {
+    "issue": {
+      "x": 20,
+      "y": 1323.0625,
+      "width": 192.65625,
+      "height": 44
+    },
+    "brand": {
+      "x": 20,
+      "y": 17.5,
+      "width": 44,
+      "height": 44
+    }
+  }
+}
