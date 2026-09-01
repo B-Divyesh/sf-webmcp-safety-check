@@ -1,0 +1,14 @@
+{
+  "url": "https://webmcp-safety-check.sociobot.in/",
+  "loadMs": 854,
+  "errors": [],
+  "a11y": {
+    "title": "WebMCP Safety Check — inspect browser-agent declarations",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 3119
+  }
+}
