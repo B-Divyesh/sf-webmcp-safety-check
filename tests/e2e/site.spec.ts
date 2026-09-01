@@ -81,7 +81,9 @@ test('@claim:offline-reload offline reload keeps the locally cached inspector ru
   const page = await context.newPage();
   const consoleErrors: string[] = [];
   page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
-  await page.goto('/');
+  await page.goto('/demo/');
+  await expect(page).toHaveTitle('Demo — WebMCP Safety Check');
+  await expect(page.getByRole('heading', { name: 'Review sample browser tools' })).toBeVisible();
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   // A controller only takes over after the first navigation.
   await page.reload();
@@ -90,9 +92,12 @@ test('@claim:offline-reload offline reload keeps the locally cached inspector ru
   await context.setOffline(true);
   try {
     await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/\/demo\/$/);
+    await expect(page).toHaveTitle('Demo — WebMCP Safety Check');
+    await expect(page.getByRole('heading', { name: 'Review sample browser tools' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Inspect tool claims before an agent acts.' })).toHaveCount(0);
+    await expect(page.getByLabel('Demo status')).toContainText('Demo — sample data, nothing is saved');
     await expect(page.locator('[data-input]')).toHaveCount(1);
-    await page.getByRole('tab', { name: 'Paste JSON' }).click();
-    await page.getByRole('button', { name: 'Load incomplete sample' }).click();
     await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
     expect(consoleErrors).toEqual([]);
   } finally {
@@ -398,6 +403,13 @@ test('all demo axe rules pass and mobile targets meet 44 CSS pixels on every rev
     await page.goto(route);
     const wordmark = page.getByRole('link', { name: 'WebMCP Safety Check home' }).or(page.locator('.site-header .brand')).first();
     const box = await wordmark.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+  for (const route of ['/', '/demo/']) {
+    await page.goto(route);
+    const provenance = page.getByRole('link', { name: 'See how the illustration was made.' });
+    const box = await provenance.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(44);
     expect(box?.height).toBeGreaterThanOrEqual(44);
   }

@@ -4,7 +4,7 @@
     "claim": "The web inspector works offline after the first visit",
     "where": "Inspector offline notice, README",
     "test": "npm run test:e2e -- --grep @claim:offline-reload",
-    "sandbox": "A fresh browser context loads once, receives service-worker control, goes offline, reloads, and analyzes the shipped sample."
+    "sandbox": "A fresh browser context opens /demo/, receives service-worker control, goes offline, and reloads; assert the dedicated demo URL, title, h1, banner, and analyzed sample remain intact."
   },
   {
     "id": "download-artifacts",

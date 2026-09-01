@@ -6,6 +6,12 @@ const site = resolve('dist/site');
 const template = await readFile(resolve('public/sw.js'), 'utf8');
 await copyFile(resolve('site/staticwebapp.config.json'), join(site, 'staticwebapp.config.json'));
 const cacheableExtensions = new Set(['.css', '.js', '.mjs', '.svg', '.webp', '.png', '.json', '.txt', '.xml', '.ico', '.woff2']);
+const documentRoutes = new Map([
+  ['index.html', '/'],
+  ['demo/index.html', '/demo/'],
+  ['privacy/index.html', '/privacy/'],
+  ['terms/index.html', '/terms/']
+]);
 
 async function filesIn(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -23,12 +29,13 @@ const urls = files
   // Azure Static Web Apps consumes this deployment configuration rather than
   // serving it. Including it makes cache.addAll reject the offline install.
   .filter((path) => path !== 'staticwebapp.config.json')
-  .filter((path) => path === 'index.html' || path === 'privacy/index.html' || path === 'terms/index.html' || cacheableExtensions.has(extname(path)))
-  .map((path) => path === 'index.html' ? '/' : path === 'privacy/index.html' ? '/privacy/' : path === 'terms/index.html' ? '/terms/' : `/${path}`)
+  .filter((path) => documentRoutes.has(path) || cacheableExtensions.has(extname(path)))
+  .map((path) => documentRoutes.get(path) ?? `/${path}`)
   .sort();
 
 const cacheContents = await Promise.all(urls.map(async (url) => {
-  const path = url === '/' ? join(site, 'index.html') : url === '/privacy/' ? join(site, 'privacy/index.html') : url === '/terms/' ? join(site, 'terms/index.html') : join(site, url.slice(1));
+  const documentPath = [...documentRoutes].find(([, route]) => route === url)?.[0];
+  const path = join(site, documentPath ?? url.slice(1));
   return readFile(path);
 }));
 const fingerprint = createHash('sha256').update(template).update(urls.join('\n')).update(Buffer.concat(cacheContents)).digest('hex').slice(0, 16);

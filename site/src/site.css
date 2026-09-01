@@ -29,7 +29,7 @@ h1 em { color: var(--accent); font-weight: inherit; }
 .demo-intro h1 { max-width: 16ch; font-size: clamp(42px, 6vw, 68px); }
 .demo-intro > p:last-child { margin: 16px 0 0; color: var(--muted); font-size: 18px; }
 .demo-inspector { padding-bottom: 72px; }
-.demo-inspector .inspector-sheet { margin-top: 0; }
+.demo-inspector .inspector-sheet { min-height: 720px; margin-top: 0; }
 
 .method, .inspector-section, .cli-section, .format, .boundary { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .method { padding: 84px 0; border-block: 1px solid var(--rule); }
@@ -70,6 +70,7 @@ code { font-family: var(--mono); }
 .site-footer { display: flex; min-height: 190px; padding: 48px max(20px, calc((100vw - 1180px) / 2)); align-items: flex-start; justify-content: space-between; gap: 32px; border-top: 1px solid var(--rule); background: var(--paper-deep); }
 .brand--footer { font-size: 20px; }
 .site-footer p { max-width: 56ch; color: var(--muted); font-size: 16px; }
+.provenance-link { display: inline-flex; min-height: 44px; align-items: center; }
 .site-footer nav a { min-height: 44px; display: inline-flex; align-items: center; }
 .site-footer nav span { color: var(--muted); font-size: 16px; }
 .noscript { position: fixed; inset: auto 16px 16px; z-index: 20; padding: 12px; color: var(--accent-contrast); background: var(--accent); }
