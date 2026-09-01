@@ -37,6 +37,18 @@ function runWithStdin(command: string, args: string[], input: string): Promise<{
   });
 }
 
+function runCommand(command: string, args: string[]): Promise<{ code: number | null; stdout: string; stderr: string }> {
+  return new Promise((resolveRun, reject) => {
+    const child = spawn(command, args, { cwd: temporaryDirectory, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.setEncoding('utf8').on('data', (chunk) => { stdout += chunk; });
+    child.stderr.setEncoding('utf8').on('data', (chunk) => { stderr += chunk; });
+    child.on('error', reject);
+    child.on('close', (code) => resolveRun({ code, stdout, stderr }));
+  });
+}
+
 describe('packed CLI consumer', () => {
   it('accepts the documented stdin sentinel in a clean npm consumer install', async () => {
     const manifest = await readFile(resolve(workspace, 'public/examples/safe-manifest.json'), 'utf8');
@@ -73,6 +85,17 @@ describe('packed CLI consumer', () => {
       code: 2,
       stderr: expect.stringContaining('Unknown option: --bogus')
     });
+  });
+
+  it('@claim:cli-demo runs the bundled sample from a clean directory and writes a review in a new temporary directory', async () => {
+    const result = await runCommand(process.execPath, [installedCli, '--demo', '--format', 'json']);
+    expect(result.code).toBe(1);
+    expect(result.stderr).toBe('');
+    const reportPath = result.stdout.match(/^Review: (.+)$/m)?.[1];
+    expect(reportPath).toBeTruthy();
+    const report = JSON.parse(await readFile(reportPath!, 'utf8')) as { summary: { status: string; blockers: number } };
+    expect(report.summary).toMatchObject({ status: 'block' });
+    expect(report.summary.blockers).toBeGreaterThan(0);
   });
 
   it('returns a blocking report for malformed declaration values', async () => {

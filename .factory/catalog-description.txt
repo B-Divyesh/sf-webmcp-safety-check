@@ -1,0 +1,1 @@
+Check browser-tool declarations before an agent acts.

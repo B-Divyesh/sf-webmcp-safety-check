@@ -1,4 +1,9 @@
 .workbench { width: 100%; }
+.workbench--demo .workbench__heading,
+.workbench--demo .source-tabs,
+.workbench--demo .source-panel,
+.workbench--demo .source-meta { display: none; }
+.workbench--demo .report { margin-top: 20px; }
 .workbench__heading { max-width: 68ch; margin: 0 0 20px; color: var(--muted); }
 .demo-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; padding: 10px 14px; border: 1px solid var(--accent); border-inline-start-width: 4px; background: color-mix(in srgb, var(--accent) 8%, var(--sheet)); }
 .demo-note__actions { display: flex; flex-wrap: wrap; gap: 8px; }

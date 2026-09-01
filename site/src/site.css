@@ -24,6 +24,12 @@ h1 em { color: var(--accent); font-weight: inherit; }
 .hero__figure img { object-fit: cover; object-position: 58% center; mix-blend-mode: multiply; }
 .hero__figure::after { content: ""; position: absolute; inset: 0; box-shadow: inset 80px 0 70px -60px var(--paper); pointer-events: none; }
 .hero__figure figcaption { position: absolute; right: 24px; bottom: 18px; padding: 5px 8px; color: #17261b; background: rgb(244 240 227 / 84%); font-size: 16px; }
+.demo-page { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
+.demo-intro { max-width: 720px; padding: 52px 0 24px; }
+.demo-intro h1 { max-width: 16ch; font-size: clamp(42px, 6vw, 68px); }
+.demo-intro > p:last-child { margin: 16px 0 0; color: var(--muted); font-size: 18px; }
+.demo-inspector { padding-bottom: 72px; }
+.demo-inspector .inspector-sheet { margin-top: 0; }
 
 .method, .inspector-section, .cli-section, .format, .boundary { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
 .method { padding: 84px 0; border-block: 1px solid var(--rule); }
@@ -83,6 +89,8 @@ code { font-family: var(--mono); }
   .brand span { font-size: 16px; }
   .site-header .nav-download { padding-inline: 10px; font-size: 16px; }
   .hero__copy { padding-inline: 16px; }
+  .demo-page { width: calc(100% - 32px); }
+  .demo-intro { padding-top: 32px; }
   h1 { font-size: clamp(44px, 14vw, 62px); }
   .hero__dek { font-size: 16px; }
   .method, .inspector-section, .cli-section, .format, .boundary { width: calc(100% - 32px); }

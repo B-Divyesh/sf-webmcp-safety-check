@@ -1,32 +1,21 @@
-# WebMCP Safety Check — review 1 handoff
+# WebMCP Safety Check — polish round 1 handoff
 
-## Result: FAIL
+## Result: ready for deployment verification
 
-Critical first-read QA was completed against commit `69e5ea756c3a75799d39049cba0701ec360c46da` and the live site on 2026-09-01. Product code was not changed.
+This repair resolves F-1-1 through F-1-18 from `.factory/review-1.md`. It adds a dedicated, isolated `/demo/` destination (with `?demo=1` compatibility), an immediate populated review viewport and focus target, a standalone CLI `--demo`, plain-language copy, route metadata, sitemap coverage, 44 px legal targets, and corrected 404 wording.
 
-The first screen explains the job, audience, primary action, and expected sample. The live downloads match the local build, all 22 registered claim commands pass, the full test and build gates pass, offline use works, and recorded browser requests stay on the product origin.
+## Local verification
 
-Two blocking demo findings remain:
+- `npm ci`: passed, zero vulnerabilities reported.
+- `npm test`: 15/15 passed, including `@claim:cli-demo` in a packed clean consumer.
+- `npm run lint` and `npm run typecheck`: passed.
+- `npm run build`: passed; `dist/site` contains the site, MV3 ZIP, standalone CLI, `/demo/`, and versioned service worker.
+- `npm run test:e2e`: 44/44 passed on desktop and 390×844 mobile. This includes the one-click visible demo/focus regression, route metadata, mobile legal target, browser storage isolation, offline reload, privacy traffic, exports, 404, and axe checks.
+- `npm run test:extension`: passed; extension smoke reports axe 0, console 0, external requests 0, storage 0.
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/demo/ .factory/evidence/local-demo`: passed. It recorded title, `lang=en`, one h1, main landmark, complete image alt text, and zero console errors in 526 ms.
+- Playwright axe scans in the browser suite have zero violations. The standalone `@axe-core/cli` attempted to use ChromeDriver 152 against the preinstalled Chromium 145 and could not start; the repository’s pinned Playwright 1.58.2 axe integration is the passing browser accessibility evidence.
 
-- Selecting **Try it with sample data** changes the URL and loads the sample, but both phone and desktop viewports remain on the landing headline. The demo notice and populated review are far below the viewport.
-- The shipped standalone CLI has no `--demo` or `demo` command that runs bundled sample data from a new temporary directory.
-
-The review also records route metadata, touch-target, first-screen fact, copy, terminology, control-label, and 404 copy findings. Full evidence and proposed corrections are in `.factory/review-1.md`.
-
-## Verification performed
-
-- All 22 exact commands from `.factory/claims.json`: passed.
-- `npm test`: 14/14 passed.
-- `npm run lint`: passed.
-- `npm run typecheck`: passed.
-- `npm run build`: passed and produced `dist/site`.
-- `npm run test:e2e`: 44/44 passed.
-- `npm run test:extension`: passed; axe 0, console 0, external requests 0, storage 0.
-- `/opt/fleet/lib/verify-url.sh`: HTTP 200, 651 ms load, one h1, one main, language/title/alt checks passed, console errors 0.
-- Live axe checks: zero violations on desktop light and mobile dark/reduced-motion.
-- Live offline demo reload: passed with a controlling service worker and no console errors.
-- Live request log: same-origin GET requests only.
-- Live CLI and extension downloads: HTTP 200 with attachment headers and byte-for-byte local matches.
+Local screenshots: `.factory/evidence/local-demo/screenshot-desktop.png` and `.factory/evidence/local-demo/screenshot-mobile.png`.
 
 ## Reproduce
 
@@ -40,8 +29,8 @@ npm run test:e2e
 npm run test:extension
 ```
 
-Open the live home page at 390×844, select **Try it with sample data**, and capture the viewport. The URL becomes `/?demo=1#inspector`, but the viewport remains at the hero while `#inspector`, the demo notice, and `#report-title` begin well below it.
+For the CLI sample after building: `node dist/cli/webmcp-safety-check.mjs --demo`. It prints a new temporary directory containing the sample manifest and review; the intentional blocking sample exits 1.
 
-## Next steps
+## Remaining work
 
-Correct every finding in `.factory/review-1.md`, add regression coverage for the landing-to-demo viewport and focus result, provide a CLI sample command, then repeat the entire review from a fresh context.
+Deploy `dist/site`, then run the documented cold live-site confirmation for `/`, `/demo/`, `?demo=1`, legal routes, 404, offline demo, and both downloads. No product defect is known locally.

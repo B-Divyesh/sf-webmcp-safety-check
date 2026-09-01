@@ -1,6 +1,6 @@
 # WebMCP Safety Check
 
-WebMCP Safety Check is a local-first checker for teams reviewing browser-resident MCP tools. It runs as a browser extension, web inspector, and CLI. It inventories declared safety properties and flags missing claims before an agent can call a tool.
+WebMCP Safety Check helps web teams review MCP tools that run in a browser. It runs as a browser extension, web inspector, and CLI. It reviews what each browser tool says it can change, access, and ask you to approve.
 
 It does **not** execute tools, read browser pages, verify server behavior, or certify a vendor. Server declarations are claims, not proof.
 
@@ -19,7 +19,7 @@ For every discovered tool, the checker records:
 
 The default CI policy fails when effect, approval, or evidence declarations are absent. Profile, origin, and credential gaps are warnings unless a stricter policy makes them required. External navigation without origin scope and real-profile use without credential scope are always blockers.
 
-Supported input includes JSON manifests, JSON-RPC `tools/list` responses, transcript arrays, JSONL events, and single tool objects. The browser UI accepts files up to and including 2 MB.
+Supported input is a manifest, `tools/list` response, transcript array, JSONL transcript, or single browser tool object. The browser UI accepts files up to and including 2 MB.
 
 ## Run locally
 
@@ -58,6 +58,14 @@ npm run test:e2e
 The extension requests no permissions or host access. It keeps input in page memory only.
 
 ## Use the CLI in CI
+
+Try the bundled sample without setup:
+
+```bash
+node dist/cli/webmcp-safety-check.mjs --demo
+```
+
+The command writes its sample manifest and review to a new temporary directory and prints that path. It exits 1 because the sample intentionally has missing declarations.
 
 ```bash
 node dist/cli/webmcp-safety-check.mjs manifest.json

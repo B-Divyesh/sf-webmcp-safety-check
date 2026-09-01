@@ -34,11 +34,11 @@ export function mountWorkbench(root: HTMLElement, options: WorkbenchOptions = {}
   let undoTimer: number | undefined;
 
   root.innerHTML = `
-    <section class="workbench" aria-labelledby="workbench-title">
-      <h2 id="workbench-title" class="visually-hidden">Manifest inspection workbench</h2>
-      <p class="workbench__heading">Choose a manifest or paste a JSON/JSONL session transcript. The check runs entirely in this browser.</p>
-      ${options.demo ? `<div class="demo-note" data-demo-banner role="status" aria-label="Demo status"><span><strong>Demo — sample data, nothing is saved.</strong> This sample stays in page memory.</span><span class="demo-note__actions"><button class="quiet-button" type="button" data-reset-demo>Reset demo</button><a class="quiet-button" href="/">Start for real</a></span></div>` : ''}
-      <div class="offline-note" data-offline hidden><strong>Offline fieldwork.</strong> Analysis and export still work; downloads and documentation links may not.</div>
+    <section class="workbench${options.demo ? ' workbench--demo' : ''}" aria-labelledby="workbench-title">
+      <h2 id="workbench-title" class="visually-hidden">Manifest and transcript inspector</h2>
+      <p class="workbench__heading">Choose a manifest or paste a manifest, tools/list response, transcript array, or JSONL transcript. The check runs entirely in this browser.</p>
+      ${options.demo ? `<div class="demo-note" data-demo-banner role="status" aria-label="Demo status"><span><strong>Demo — sample data, nothing is saved.</strong> This sample stays in page memory.</span><span class="demo-note__actions"><button class="quiet-button" type="button" data-reset-demo>Reset demo</button><a class="quiet-button" href="/">Clear sample and inspect your data</a></span></div>` : ''}
+      <div class="offline-note" data-offline hidden><strong>You are offline.</strong> Analysis and export still work; downloads and documentation links may not.</div>
       <div class="error-note" data-error role="alert" tabindex="-1" hidden></div>
       <div class="source-tabs" role="tablist" aria-label="Input method">
         <button class="source-tab" type="button" role="tab" id="tab-file" aria-controls="panel-file" aria-selected="true" data-tab="file">Choose file</button>
@@ -47,8 +47,8 @@ export function mountWorkbench(root: HTMLElement, options: WorkbenchOptions = {}
       <div class="source-panel" role="tabpanel" id="panel-file" aria-labelledby="tab-file" data-panel="file">
         <div class="drop-envelope" data-drop>
           <div>
-            <strong>Place a specimen here</strong>
-            <p>JSON manifests and JSON/JSONL transcripts up to 2 MB. Nothing leaves this device.</p>
+            <strong>Drop a manifest or transcript here</strong>
+            <p>Manifest, tools/list response, transcript array, or JSONL transcript up to 2 MB. Nothing leaves this device.</p>
             <label class="file-label">Choose a manifest<input class="file-input" data-file type="file" accept=".json,.jsonl,application/json,application/x-ndjson,text/plain"></label>
           </div>
         </div>
@@ -59,7 +59,7 @@ export function mountWorkbench(root: HTMLElement, options: WorkbenchOptions = {}
         <div class="input-actions">
           <button class="primary-button" type="button" data-analyze>Inspect declarations</button>
           <button class="secondary-button" type="button" data-sample>Load incomplete sample</button>
-          <button class="quiet-button" type="button" data-clear>Clear</button>
+          <button class="quiet-button" type="button" data-clear>Clear input</button>
         </div>
       </div>
       <p class="source-meta" data-meta aria-live="polite">Ready for a local file or pasted document.</p>
@@ -190,7 +190,7 @@ export function mountWorkbench(root: HTMLElement, options: WorkbenchOptions = {}
   }
 }
 
-function emptyState(title = 'No specimens collected', body = 'Choose a manifest, drop a transcript, or load the sample to produce a review card.'): string {
+function emptyState(title = 'No tools to review', body = 'Choose a manifest, drop a transcript, or load the sample to produce a review card.'): string {
   return `<div class="empty-ledger">
     <svg class="empty-ledger__mark" viewBox="0 0 48 48" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M9 39C21 30 31 19 39 7M14 35C7 28 9 19 18 17c6 8 5 14-4 18Zm11-10c-5-8-1-16 8-17 4 8 1 14-8 17Z"/></svg>
     <h2>${escapeHtml(title)}</h2><p>${escapeHtml(body)}</p>

@@ -157,15 +157,28 @@ test('@claim:no-install-cli downloaded CLI runs directly with Node without an in
   }
 });
 
-test('@claim:demo-sandbox demo loads a resettable sample without persisted data', async ({ page }) => {
-  await page.goto('/?demo=1#inspector');
+test('@claim:demo-sandbox one landing click opens an isolated, resettable sample in the visible viewport', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => localStorage.setItem('real:marker', 'unchanged'));
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\/demo\/$/);
+  await expect(page.getByRole('heading', { name: 'Review sample browser tools' })).toBeFocused();
   await expect(page.getByLabel('Demo status')).toContainText('Demo — sample data, nothing is saved');
   await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
+  for (const element of [page.getByLabel('Demo status'), page.getByRole('heading', { name: 'Block exposure' })]) {
+    const box = await element.boundingBox();
+    expect(box).toBeTruthy();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeLessThan(page.viewportSize()!.height);
+  }
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.getByRole('heading', { name: 'Block exposure' })).toBeVisible();
   await expect(page.locator('[data-input]')).toHaveValue(/place_order/);
-  const storage = await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length }));
-  expect(storage).toEqual({ local: 0, session: 0 });
+  expect(await page.evaluate(() => localStorage.getItem('real:marker'))).toBe('unchanged');
+  await page.getByRole('link', { name: 'Clear sample and inspect your data' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  expect(await page.evaluate(() => localStorage.getItem('real:marker'))).toBe('unchanged');
+  await expect(page.locator('[data-input]')).toHaveValue('');
 });
 
 test('@claim:json-export exports the generated report as JSON', async ({ page }) => {
@@ -296,9 +309,15 @@ test('metadata, discovery, footer identity, and real 404 are complete', async ({
   const sitemap = await request.get('/sitemap.xml');
   expect(sitemap.status()).toBe(200);
   expect(await sitemap.text()).toContain('/privacy/');
+  expect(await sitemap.text()).toContain('/demo/');
+  await page.goto('/demo/');
+  await expect(page).toHaveTitle('Demo — WebMCP Safety Check');
+  await expect(page.locator('link[rel=canonical]')).toHaveAttribute('href', 'https://webmcp-safety-check.sociobot.in/demo/');
+  await page.goto('/?demo=1');
+  await expect(page).toHaveURL(/\/demo\/$/);
   const missing = await request.get('/not-a-real-route');
   expect(missing.status()).toBe(404);
-  expect(await missing.text()).toContain('This page is not in the field guide.');
+  expect(await missing.text()).toContain('We could not find this page.');
 });
 
 test('light-theme focus rings meet 3:1 contrast on every light surface and inside the terminal', async ({ page }) => {
@@ -339,17 +358,22 @@ test('light-theme focus rings meet 3:1 contrast on every light surface and insid
 
 test('meaningful landing, inspector, legal, and mobile copy keeps the 16 px baseline', async ({ page }) => {
   const selectors = [
-    '.hero__action-note', '.micro-proof', '.site-footer p', '.site-footer nav span',
-    '.source-meta', '.report__eyebrow', '.coverage span', '.summary-list span', '.claim-tag', '.finding p'
+    '.hero__action-note', '.micro-proof', '.site-footer p', '.site-footer nav span', '.terminal pre', '.format pre'
   ];
-  await page.goto('/?demo=1#inspector');
+  await page.goto('/');
   for (const selector of selectors) {
     const sizes = await page.locator(selector).evaluateAll((elements) => elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize)));
     expect(sizes.length).toBeGreaterThan(0);
     expect(sizes.every((size) => size >= 16)).toBe(true);
   }
+  await page.goto('/demo/');
+  for (const selector of ['.report__eyebrow', '.coverage span', '.summary-list span', '.claim-tag', '.finding p']) {
+    const sizes = await page.locator(selector).evaluateAll((elements) => elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize)));
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(sizes.every((size) => size >= 16)).toBe(true);
+  }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.reload();
+  await page.goto('/');
   for (const selector of ['.hero__action-note', '.micro-proof', '.terminal pre', '.format pre', '.site-footer p', '.site-footer nav span']) {
     const sizes = await page.locator(selector).evaluateAll((elements) => elements.map((element) => Number.parseFloat(getComputedStyle(element).fontSize)));
     expect(sizes.length).toBeGreaterThan(0);
@@ -360,14 +384,26 @@ test('meaningful landing, inspector, legal, and mobile copy keeps the 16 px base
   expect(Number.parseFloat(await page.locator('.legal-footer').evaluate((element) => getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(16);
 });
 
-test('all demo axe rules pass and mobile targets meet 44 CSS pixels', async ({ page }) => {
-  await page.goto('/?demo=1#inspector');
+test('all demo axe rules pass and mobile targets meet 44 CSS pixels on every reviewed route', async ({ page }) => {
+  await page.goto('/demo/');
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
+  await page.goto('/');
   for (const element of [page.getByRole('button', { name: 'Copy command' }), page.getByRole('link', { name: /View a complete example/ })]) {
     const box = await element.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
   }
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ['/', '/demo/', '/privacy/', '/terms/', '/not-a-real-route']) {
+    await page.goto(route);
+    const wordmark = page.getByRole('link', { name: 'WebMCP Safety Check home' }).or(page.locator('.site-header .brand')).first();
+    const box = await wordmark.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.goto('/privacy/');
+  const issue = page.getByRole('link', { name: 'Public issue tracker on GitHub (external site)' });
+  expect((await issue.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 });
 
 test('keyboard entry, dark mode, and reduced motion remain accessible', async ({ page }) => {
@@ -395,13 +431,13 @@ test('@claim:static-deployment-contract static routes send security headers, cac
   expect(home.headers()['content-security-policy']).toContain("frame-ancestors 'none'");
   expect(home.headers()['permissions-policy']).toContain('camera=()');
   expect(home.headers()['x-content-type-options']).toBe('nosniff');
-  const scriptPath = (await home.text()).match(/src="(\/assets\/index-[^"]+\.js)"/)?.[1];
+  const scriptPath = (await home.text()).match(/src="(\/assets\/(?:index|main)-[^"]+\.js)"/)?.[1];
   expect(scriptPath).toBeTruthy();
   expect((await request.get(scriptPath!)).headers()['cache-control']).toContain('immutable');
   expect((await request.get('/sw.js')).headers()['cache-control']).toBe('no-cache');
   const missing = await request.get('/not-a-real-route');
   expect(missing.status()).toBe(404);
-  expect(await missing.text()).toContain('This page is not in the field guide.');
+  expect(await missing.text()).toContain('We could not find this page.');
 
   for (const route of ['/privacy/', '/terms/']) {
     await page.goto(route);

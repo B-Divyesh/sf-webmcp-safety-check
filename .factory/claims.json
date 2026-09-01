@@ -21,6 +21,13 @@
     "sandbox": "Download the advertised CLI into a fresh temporary directory, invoke it with Node against the shipped safe manifest, and parse its clear JSON output."
   },
   {
+    "id": "cli-demo",
+    "claim": "The CLI runs a bundled sample and writes its review to a new temporary directory",
+    "where": "Landing CLI example, README",
+    "test": "npm test -- --testNamePattern @claim:cli-demo",
+    "sandbox": "Install the packed CLI in a clean temporary consumer, run --demo, and parse the reported temporary review file."
+  },
+  {
     "id": "demo-sandbox",
     "claim": "The one-click sample demo is resettable and saves no sample data",
     "where": "Landing primary action, demo banner, demo documentation",
